@@ -3763,12 +3763,9 @@ function selectOption(idx) {
   const btns = document.querySelectorAll(".quiz-option");
   btns.forEach((b) => (b.disabled = true));
   if (idx === q.correct) {
-    btns.forEach((b) => {
-      if (parseInt(b.dataset.idx) === idx) b.classList.add("correct");
-    });
+    btns[idx].classList.add("correct");
   } else {
     btns.forEach((b) => {
-      if (parseInt(b.dataset.idx) === idx) b.classList.add("selected-wrong");
       if (parseInt(b.dataset.idx) === q.correct) b.classList.add("wrong");
     });
   }
