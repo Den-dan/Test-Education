@@ -1,0 +1,902 @@
+<!-- admin@ibacademy.ru
+ h3#/KquAr7Va9i% -->
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="ИБ-Академия — платформа для обучения сотрудников информационной безопасности. Курсы, тесты и сертификаты для повышения киберосведомлённости."
+    />
+    <title>ИБ-Академия — Информационная безопасность для сотрудников</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link
+      rel="preload"
+      href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+      as="script"
+      crossorigin="anonymous"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- PRINT OVERLAY -->
+    <div id="print-certificate-overlay">
+      <div class="pco-inner">
+        <div class="pco-corner tl"></div>
+        <div class="pco-corner tr"></div>
+        <div class="pco-corner bl"></div>
+        <div class="pco-corner br"></div>
+        <span class="pco-shield" id="pco-icon">🛡️</span>
+        <div class="pco-org">ИБАкадемия · Информационная безопасность</div>
+        <div class="pco-title">СЕРТИФИКАТ</div>
+        <div class="pco-level-badge" id="pco-level-badge">Серебряный</div>
+        <div class="pco-subtitle">О прохождении курса</div>
+        <div class="pco-divider"></div>
+        <div class="pco-given">Настоящим подтверждается, что</div>
+        <div class="pco-name" id="pco-name">—</div>
+        <div class="pco-desc" id="pco-desc">
+          успешно прошёл(ла) обучение и итоговый контроль знаний по курсу
+        </div>
+        <div class="pco-course" id="pco-course">
+          «Информационная безопасность для сотрудников»
+        </div>
+        <div class="pco-desc" style="margin-bottom: 1rem" id="pco-subdesc">
+          продемонстрировав уверенное владение основами киберзащиты,<br />методами
+          выявления угроз и правилами безопасного поведения в цифровой среде.
+        </div>
+        <div id="pco-roles-wrap"></div>
+        <div class="pco-score-block">
+          <div class="pco-score-label">Результат итогового теста</div>
+          <div class="pco-score-val" id="pco-score">—</div>
+        </div>
+        <div class="pco-date" id="pco-date">Дата выдачи: —</div>
+        <div class="pco-footer">
+          <div>
+            <div class="pco-footer-logo">ИБАкадемия</div>
+            <div style="font-size: 0.7rem; color: #9ab0c0; margin-top: 0.2rem">
+              Дипломная работа · 2026
+            </div>
+          </div>
+          <div style="text-align: center">
+            <div style="font-size: 0.7rem; margin-bottom: 0.2rem">
+              Разработчики
+            </div>
+            <div style="font-size: 0.75rem; color: #3a5570; font-weight: 600">
+              Утеев Даниэль · Афанасьев Артём
+            </div>
+          </div>
+          <div style="text-align: right">
+            <div style="font-size: 0.65rem; color: #9ab0c0">ID сертификата</div>
+            <div style="font-size: 0.7rem; color: #3a5570" id="pco-id">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MANDATORY AUTH OVERLAY -->
+    <!-- PROFILE MODAL -->
+    <div id="profileModal">
+      <div class="pm-card">
+        <div class="pm-header">
+          <div class="pm-title">⚙ Личный кабинет</div>
+          <button class="pm-close" id="profileModalClose">✕</button>
+        </div>
+        <div class="pm-body">
+          <div class="pm-tabs">
+            <button class="pm-tab active" data-tab="info">Профиль</button>
+            <button class="pm-tab" data-tab="password">Пароль</button>
+            <button class="pm-tab" data-tab="stats">Статистика</button>
+          </div>
+          <div class="pm-section active" id="pmSectionInfo">
+            <div class="pm-group">
+              <label class="pm-label">Полное имя</label>
+              <input
+                class="pm-input"
+                type="text"
+                id="pmName"
+                placeholder="Иван Иванов"
+              />
+            </div>
+            <div class="pm-group">
+              <label class="pm-label">Должность</label>
+              <select class="pm-select" id="pmRole">
+                <option value="employee">Сотрудник</option>
+                <option value="manager">Менеджер</option>
+                <option value="it">IT-специалист</option>
+                <option value="hr">HR</option>
+                <option value="admin">Администратор</option>
+              </select>
+            </div>
+            <div class="pm-group">
+              <label class="pm-label">Отдел</label>
+              <input
+                class="pm-input"
+                type="text"
+                id="pmDept"
+                placeholder="Бухгалтерия"
+              />
+            </div>
+            <div class="pm-group">
+              <label class="pm-label">Email</label>
+              <input
+                class="pm-input"
+                type="text"
+                id="pmEmail"
+                disabled
+                style="opacity: 0.5; cursor: not-allowed"
+              />
+            </div>
+            <div class="pm-msg" id="pmInfoMsg"></div>
+            <button class="pm-btn" id="pmSaveInfoBtn">
+              Сохранить изменения
+            </button>
+          </div>
+          <div class="pm-section" id="pmSectionPassword">
+            <div class="pm-group">
+              <label class="pm-label">Текущий пароль</label>
+              <input
+                class="pm-input"
+                type="password"
+                id="pmOldPass"
+                placeholder="••••••••"
+              />
+            </div>
+            <div class="pm-group">
+              <label class="pm-label">Новый пароль</label>
+              <input
+                class="pm-input"
+                type="password"
+                id="pmNewPass"
+                placeholder="Минимум 6 символов"
+              />
+            </div>
+            <div class="pm-group">
+              <label class="pm-label">Повторите новый пароль</label>
+              <input
+                class="pm-input"
+                type="password"
+                id="pmNewPass2"
+                placeholder="••••••••"
+              />
+            </div>
+            <div class="pm-msg" id="pmPassMsg"></div>
+            <button class="pm-btn" id="pmSavePassBtn">Изменить пароль</button>
+          </div>
+          <div class="pm-section" id="pmSectionStats">
+            <div class="pm-stat-grid">
+              <div class="pm-stat-card">
+                <div class="pm-stat-val" id="pmStatMods">0/6</div>
+                <div class="pm-stat-lbl">Модулей (текущая роль)</div>
+              </div>
+              <div class="pm-stat-card">
+                <div class="pm-stat-val" id="pmStatBest">—</div>
+                <div class="pm-stat-lbl">Лучший результат</div>
+              </div>
+              <div class="pm-stat-card">
+                <div class="pm-stat-val" id="pmStatAttempts">0</div>
+                <div class="pm-stat-lbl">Попыток теста</div>
+              </div>
+              <div class="pm-stat-card">
+                <div class="pm-stat-val" id="pmStatRole">—</div>
+                <div class="pm-stat-lbl">Должность</div>
+              </div>
+            </div>
+            <div class="pm-label" style="margin-top: 0.5rem">
+              Статистика по должностям
+            </div>
+            <div class="pm-roles-grid" id="pmRolesGrid"></div>
+            <div class="pm-label" style="margin-top: 0.75rem">
+              История тестов
+            </div>
+            <div class="pm-history-list" id="pmHistoryList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="mandatoryAuthOverlay" class="hidden">
+      <div class="mao-card">
+        <div class="mao-inner">
+          <div class="mao-logo">
+            <svg
+              class="mao-logo-icon"
+              viewBox="0 0 80 90"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M40 4L8 18V44C8 62 24 77 40 86C56 77 72 62 72 44V18L40 4Z"
+                stroke="#00d4ff"
+                stroke-width="2"
+                fill="rgba(0,212,255,0.05)"
+              />
+              <path
+                d="M40 18L22 26V42C22 54 30 64 40 70C50 64 58 54 58 42V26L40 18Z"
+                stroke="#00d4ff"
+                stroke-width="1.5"
+                stroke-dasharray="4 3"
+                fill="rgba(0,212,255,0.03)"
+              />
+              <path
+                d="M30 42L37 49L52 34"
+                stroke="#00e5a0"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <div class="mao-logo-text">
+              <div class="mao-logo-title">ИБАкадемия</div>
+              <div class="mao-logo-sub">Информационная безопасность</div>
+            </div>
+          </div>
+          <div class="mao-headline">Добро пожаловать</div>
+          <div class="mao-sub">
+            Для доступа к курсу необходимо <span>войти в аккаунт</span> или
+            пройти быструю регистрацию
+          </div>
+          <div class="mao-tabs">
+            <button class="mao-tab active" id="maoTabLogin">Вход</button>
+            <button class="mao-tab" id="maoTabRegister">Регистрация</button>
+          </div>
+          <!-- LOGIN -->
+          <div id="maoFormLogin" class="mao-form">
+            <div class="mao-group">
+              <label class="mao-label">Email</label>
+              <input
+                class="mao-input"
+                type="email"
+                id="maoLoginEmail"
+                placeholder="you@company.ru"
+              />
+            </div>
+            <div class="mao-group">
+              <label class="mao-label">Пароль</label>
+              <input
+                class="mao-input"
+                type="password"
+                id="maoLoginPassword"
+                placeholder="••••••••"
+              />
+            </div>
+            <div class="mao-error" id="maoLoginError"></div>
+            <button class="mao-btn" id="maoLoginBtn">Войти →</button>
+          </div>
+          <!-- REGISTER -->
+          <div id="maoFormRegister" class="mao-form" style="display: none">
+            <div class="mao-group">
+              <label class="mao-label">Полное имя</label>
+              <input
+                class="mao-input"
+                type="text"
+                id="maoRegName"
+                placeholder="Иван Иванов"
+              />
+            </div>
+            <div class="mao-group">
+              <label class="mao-label">Email</label>
+              <input
+                class="mao-input"
+                type="email"
+                id="maoRegEmail"
+                placeholder="you@company.ru"
+              />
+            </div>
+            <div class="mao-row">
+              <div class="mao-group">
+                <label class="mao-label">Должность</label>
+                <select class="mao-select" id="maoRegRole">
+                  <option value="employee">Сотрудник</option>
+                  <option value="manager">Менеджер</option>
+                  <option value="it">IT-специалист</option>
+                  <option value="hr">HR</option>
+                  <option value="admin">Администратор</option>
+                </select>
+              </div>
+              <div class="mao-group">
+                <label class="mao-label">Отдел</label>
+                <input
+                  class="mao-input"
+                  type="text"
+                  id="maoRegDept"
+                  placeholder="Бухгалтерия"
+                />
+              </div>
+            </div>
+            <div class="mao-group">
+              <label class="mao-label">Пароль</label>
+              <input
+                class="mao-input"
+                type="password"
+                id="maoRegPassword"
+                placeholder="Минимум 6 символов"
+              />
+            </div>
+            <div class="mao-error" id="maoRegError"></div>
+            <div class="mao-success" id="maoRegSuccess"></div>
+            <button class="mao-btn" id="maoRegBtn">Создать аккаунт →</button>
+          </div>
+          <div class="mao-security-note">
+            <span>🔒</span>
+            Ваши данные защищены. Доступ открыт только авторизованным
+            сотрудникам.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIDEO MODAL (FIXED: preview + click-to-play) -->
+    <div id="videoModal">
+      <div class="video-modal-inner">
+        <div class="video-modal-header">
+          <div class="video-modal-title" id="videoModalTitle">Видеоурок</div>
+          <button class="video-modal-close" id="videoModalClose">✕</button>
+        </div>
+        <!-- Превью (показывается первым) -->
+        <div
+          class="video-preview-wrap"
+          id="videoPreviewWrap"
+          onclick="activateVideoPlayer()"
+        >
+          <img
+            class="video-preview-img"
+            id="videoPreviewImg"
+            src=""
+            alt="Preview"
+            loading="lazy"
+            decoding="async"
+            onerror="this.style.opacity = '0.1'"
+          />
+          <div class="video-play-center">
+            <div class="video-play-circle">
+              <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+            </div>
+            <div class="video-play-label">Нажмите для воспроизведения</div>
+          </div>
+        </div>
+        <!-- Iframe (показывается после клика) -->
+        <div class="video-embed-wrap" id="videoEmbedWrap">
+          <iframe
+            id="videoModalIframe"
+            src=""
+            allowfullscreen
+            allow="autoplay; encrypted-media; picture-in-picture"
+          ></iframe>
+        </div>
+        <div class="video-modal-footer">
+          <div class="video-modal-desc" id="videoModalDesc"></div>
+          <a
+            id="videoFallbackBtn"
+            href="#"
+            target="_blank"
+            rel="noopener"
+            style="
+              display: none;
+              font-family: &quot;Rajdhani&quot;, sans-serif;
+              font-weight: 600;
+              font-size: 0.8rem;
+              letter-spacing: 1.5px;
+              text-transform: uppercase;
+              padding: 0.5rem 1.2rem;
+              border-radius: 2px;
+              border: 1px solid var(--danger);
+              color: var(--danger);
+              text-decoration: none;
+              white-space: nowrap;
+              transition: all 0.2s;
+              flex-shrink: 0;
+            "
+            onmouseover="this.style.background = 'rgba(255,59,92,0.1)'"
+            onmouseout="this.style.background = 'transparent'"
+          >
+            ▶ Открыть на YouTube
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAV -->
+    <nav>
+      <a class="nav-logo" href="#"><span>ИБ</span>Академия</a>
+      <ul class="nav-links">
+        <li><a href="#threats">Угрозы</a></li>
+        <li><a href="#modules">Обучение</a></li>
+        <li><a href="#news">Новости</a></li>
+        <li><a href="#quiz">Тест</a></li>
+        <li><a href="#tips">Советы</a></li>
+        <li id="navCertLink">
+          <a href="#certificate-section">🏆 Сертификат</a>
+        </li>
+      </ul>
+      <div class="nav-auth-area" style="gap: 0.75rem">
+        <button
+          class="theme-toggle-btn"
+          id="themeToggleBtn"
+          onclick="toggleTheme()"
+        >
+          <span class="tt-icon" id="themeIcon">✦</span>
+          <span id="themeLabel">Светлая</span>
+        </button>
+        <div id="navGuest">
+          <button class="btn-nav" id="openModalBtn">Войти / Регистрация</button>
+        </div>
+        <div id="navUser" style="display: none" class="nav-user-info">
+  <button class="btn-nav-profile" id="openProfileBtn">
+    <span class="nav-user-name" id="navUserName"></span>
+    <span class="nav-role-badge" id="navRoleBadge"></span>
+    <span class="nav-profile-icon">⚙</span>
+  </button>
+  <button class="btn-nav admin-panel-btn" id="openAdminBtn" style="display:none">🛠 Админ</button>
+  <button class="btn-nav btn-nav-logout" id="logoutBtn">Выйти</button>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-orb"></div>
+      <div class="hero-orb2"></div>
+      <div>
+        <div class="shield-icon">
+          <svg
+            viewBox="0 0 80 90"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M40 4L8 18V44C8 62 24 77 40 86C56 77 72 62 72 44V18L40 4Z"
+              stroke="#00d4ff"
+              stroke-width="2"
+              fill="rgba(0,212,255,0.05)"
+            />
+            <path
+              d="M40 18L22 26V42C22 54 30 64 40 70C50 64 58 54 58 42V26L40 18Z"
+              stroke="#00d4ff"
+              stroke-width="1.5"
+              stroke-dasharray="4 3"
+              fill="rgba(0,212,255,0.03)"
+            />
+            <path
+              d="M30 42L37 49L52 34"
+              stroke="#00e5a0"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+        <div class="hero-badge">Кибер безопасность</div>
+        <h1>
+          Защити организацию —<br /><span class="accent"
+            >обучи сотрудников</span
+          >
+        </h1>
+        <p>
+          Комплексная платформа для информирования и обучения персонала по
+          вопросам информационной безопасности. От базовых угроз до сложных
+          сценариев атак.
+        </p>
+        <div class="hero-instruction">
+          <div class="hero-instruction-title" data-i18n="hero.guide.title">
+            // Как пользоваться платформой
+          </div>
+          <div class="hero-instruction-steps">
+            <div class="hero-instruction-step">
+              <span class="step-num">01</span>
+              <span data-i18n="hero.guide.s1"
+                >Зарегистрируйтесь и выберите свою должность — программа
+                обучения адаптируется автоматически.</span
+              >
+            </div>
+            <div class="hero-instruction-step">
+              <span class="step-num">02</span>
+              <span data-i18n="hero.guide.s2"
+                >Просмотрите 6 видеомодулей и отметьте каждый как
+                пройденный.</span
+              >
+            </div>
+            <div class="hero-instruction-step">
+              <span class="step-num">03</span>
+              <span data-i18n="hero.guide.s3"
+                >Пройдите итоговый тест и получите персональный
+                сертификат.</span
+              >
+            </div>
+          </div>
+        </div>
+        <div class="btn-group">
+          <a class="btn btn-primary" href="#modules" data-i18n="hero.start"
+            >Начать обучение</a
+          >
+          <a class="btn btn-outline" href="#quiz" data-i18n="hero.quiz"
+            >Пройти тест</a
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat fade-in">
+        <span class="stat-num">91%</span>
+        <div class="stat-label">кибератак начинается с фишинга</div>
+      </div>
+      <div class="stat fade-in">
+        <span class="stat-num">95%</span>
+        <div class="stat-label">инцидентов — из-за ошибок людей</div>
+      </div>
+      <div class="stat fade-in">
+        <span class="stat-num">70%</span>
+        <div class="stat-label">снижение рисков после обучения</div>
+      </div>
+      <div class="stat fade-in">
+        <span class="stat-num">4.5M₽</span>
+        <div class="stat-label">средний ущерб от одного инцидента</div>
+      </div>
+    </div>
+
+    <!-- THREATS -->
+    <section id="threats">
+      <div class="section-label">// Актуальные угрозы</div>
+      <h2>Что угрожает вашей организации?</h2>
+      <p class="section-desc">
+        Современные киберугрозы становятся всё сложнее. Сотрудники — первый и
+        самый уязвимый рубеж защиты.
+      </p>
+      <div class="threats-grid">
+        <div class="threat-card fade-in">
+          <span class="threat-icon">🎣</span>
+          <h3>Фишинг и социальная инженерия</h3>
+          <p>
+            Мошеннические письма, звонки и сообщения, направленные на кражу
+            учётных данных и получение несанкционированного доступа.
+          </p>
+          <span class="threat-level level-high">● Высокий риск</span>
+        </div>
+        <div class="threat-card fade-in">
+          <span class="threat-icon">🔒</span>
+          <h3>Программы-вымогатели</h3>
+          <p>
+            Вредоносное ПО, шифрующее данные организации и требующее выкуп.
+            Распространяется через заражённые вложения и ссылки.
+          </p>
+          <span class="threat-level level-high">● Высокий риск</span>
+        </div>
+        <div class="threat-card fade-in">
+          <span class="threat-icon">🕵️</span>
+          <h3>Утечки конфиденциальных данных</h3>
+          <p>
+            Случайная или преднамеренная передача корпоративной информации
+            третьим лицам через почту, мессенджеры или USB-носители.
+          </p>
+          <span class="threat-level level-med">● Средний риск</span>
+        </div>
+        <div class="threat-card fade-in">
+          <span class="threat-icon">🔑</span>
+          <h3>Слабые и скомпрометированные пароли</h3>
+          <p>
+            Использование простых или повторяющихся паролей открывает
+            злоумышленникам доступ к корпоративным системам.
+          </p>
+          <span class="threat-level level-med">● Средний риск</span>
+        </div>
+        <div class="threat-card fade-in">
+          <span class="threat-icon">📡</span>
+          <h3>Небезопасные сети и удалённый доступ</h3>
+          <p>
+            Подключение к рабочим ресурсам через общедоступный Wi-Fi без VPN
+            создаёт риск перехвата данных.
+          </p>
+          <span class="threat-level level-med">● Средний риск</span>
+        </div>
+        <div class="threat-card fade-in">
+          <span class="threat-icon">💾</span>
+          <h3>Вредоносные устройства и ПО</h3>
+          <p>
+            Подключение сторонних накопителей или установка непроверенного ПО
+            может внести в систему вирусы и трояны.
+          </p>
+          <span class="threat-level level-low">● Управляемый риск</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- MODULES -->
+    <section id="modules">
+      <div class="section-label">// Программа обучения</div>
+      <h2>Учебные модули</h2>
+      <p class="section-desc">
+        Программа адаптируется под вашу должность и охватывает все ключевые
+        аспекты информационной безопасности.
+      </p>
+      <div class="role-info-banner" id="roleInfoBanner" style="display: none">
+        <div class="rib-icon">🎯</div>
+        <div class="rib-text">
+          Программа адаптирована для: <strong id="roleInfoText">—</strong
+          ><br />Модули и тест подобраны с учётом вашей роли в организации.
+        </div>
+      </div>
+      <div class="user-progress-bar" id="userProgressBar">
+        <div class="upb-label">
+          Прогресс обучения — <span id="progressRoleLabel">Сотрудник</span>
+          <span id="progressCount">0 / 6 модулей</span>
+        </div>
+        <div class="upb-track">
+          <div class="upb-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <button
+          class="upb-details-btn"
+          id="upbDetailsBtn"
+          onclick="toggleProgressDetails()"
+        >
+          ▼ Подробнее по всем должностям
+        </button>
+        <div class="upb-details-panel" id="upbDetailsPanel"></div>
+      </div>
+      <div class="modules-list" id="modulesList"></div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- NEWS -->
+    <section id="news">
+      <div class="section-label">// Новости кибербезопасности</div>
+      <h2>Реальные кейсы и последствия</h2>
+      <p class="section-desc">
+        Разборы реальных инцидентов — чтобы понять, как атаки происходят на
+        практике и к чему приводят нарушения безопасности.
+      </p>
+      <div class="news-grid" id="newsGrid"></div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- QUIZ -->
+    <section id="quiz">
+      <div class="section-label">// Проверь знания</div>
+      <h2>Итоговый тест</h2>
+      <p class="section-desc" id="quizDesc">
+        Проверьте знания по всем модулям. Тест адаптирован под вашу должность.
+      </p>
+      <div class="quiz-wrapper fade-in">
+        <div class="quiz-progress-bar-wrap">
+          <div class="quiz-progress-bar" id="quizProgressBar"></div>
+        </div>
+        <div class="quiz-progress-label" id="quizProgressLabel">
+          Вопрос 1 из 40
+        </div>
+        <div id="quizBody"></div>
+        <div class="quiz-nav" id="quizNav" style="display: none">
+          <span></span>
+          <button class="btn btn-outline" id="quizNext">Следующий →</button>
+        </div>
+        <div id="quizResult" style="display: none">
+          <div class="quiz-perfect-banner" id="quizPerfectBanner">
+            <span class="pb-icon">🌟</span>
+            <div class="pb-title">Идеальный результат! Поздравляем!</div>
+            <div class="pb-desc" id="quizPerfectDesc">
+              Вы ответили верно на все вопросы — 100% правильных ответов.
+            </div>
+          </div>
+          <div class="quiz-history-panel" id="quizHistoryPanel">
+            <div class="qhp-card">
+              <div class="qhp-label">Предыдущая попытка</div>
+              <div class="qhp-score prev" id="qhpPrev">—</div>
+              <div class="qhp-sub" id="qhpPrevSub"></div>
+            </div>
+            <div class="qhp-card">
+              <div class="qhp-label">Текущий результат</div>
+              <div class="qhp-score current" id="qhpCurrent">—</div>
+              <div class="qhp-sub" id="qhpCurrentSub"></div>
+            </div>
+            <div class="qhp-card">
+              <div class="qhp-label">Лучший результат</div>
+              <div class="qhp-score best" id="qhpBest">—</div>
+              <div class="qhp-sub" id="qhpBestSub"></div>
+            </div>
+          </div>
+          <div class="quiz-result-score" id="quizScoreDisplay"></div>
+          <div class="quiz-result-label" id="quizResultLabel"></div>
+          <div class="quiz-result-breakdown" id="quizBreakdown"></div>
+          <button
+            class="btn btn-primary"
+            id="restartQuizBtn"
+            style="margin-top: 2rem"
+          >
+            Пройти заново
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- CERTIFICATE -->
+    <section id="certificate-section">
+      <div class="section-label">// Сертификат</div>
+      <h2>Ваш сертификат</h2>
+      <p class="section-desc">
+        Выдаётся при прохождении всех 6 модулей и результате теста не ниже 65%.
+      </p>
+      <div class="certificate-box fade-in">
+        <span class="cert-icon">🏆</span>
+        <div class="cert-title">Сертификат о прохождении</div>
+        <div class="cert-name" id="certName">—</div>
+        <div class="cert-desc">
+          успешно прошёл(ла) курс<br /><strong style="color: var(--text)"
+            >«Информационная безопасность для сотрудников»</strong
+          ><br />и продемонстрировал(а) знание основ киберзащиты
+        </div>
+        <div class="cert-score" id="certScore"></div>
+        <div class="cert-date" id="certDate"></div>
+        <button class="cert-print-btn" id="certPrintBtn">
+          🖨 Распечатать сертификат
+        </button>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- TIPS -->
+    <section id="tips">
+      <div class="section-label">// Правила безопасности</div>
+      <h2>12 правил кибергигиены</h2>
+      <p class="section-desc">
+        Простые привычки, которые существенно снижают риск инцидентов
+        информационной безопасности.
+      </p>
+      <div class="tips-grid">
+        <div class="tip-card fade-in">
+          <span class="tip-icon">🔐</span>
+          <h3>Надёжные пароли</h3>
+          <p>
+            Используйте уникальные пароли от 12 символов с буквами, цифрами и
+            знаками. Никогда не повторяйте пароли.
+          </p>
+        </div>
+        <div class="tip-card fade-in">
+          <span class="tip-icon">📧</span>
+          <h3>Проверяйте отправителя</h3>
+          <p>
+            Перед открытием вложений или переходом по ссылкам убедитесь в
+            подлинности отправителя письма.
+          </p>
+        </div>
+        <div class="tip-card fade-in">
+          <span class="tip-icon">🔄</span>
+          <h3>Обновляйте ПО</h3>
+          <p>
+            Своевременно устанавливайте обновления операционной системы и
+            приложений — они закрывают уязвимости.
+          </p>
+        </div>
+        <div class="tip-card fade-in">
+          <span class="tip-icon">🛡️</span>
+          <h3>Двухфакторная аутентификация</h3>
+          <p>
+            Включайте 2FA везде, где это возможно. Даже если пароль украдут —
+            доступ останется защищённым.
+          </p>
+        </div>
+        <div class="tip-card fade-in">
+          <span class="tip-icon">💻</span>
+          <h3>Блокируйте экран</h3>
+          <p>
+            Уходя от рабочего места даже на минуту, блокируйте компьютер. Win+L
+            или Cmd+Ctrl+Q.
+          </p>
+        </div>
+        <div class="tip-card fade-in">
+          <span class="tip-icon">📶</span>
+          <h3>Используйте VPN</h3>
+          <p>
+            При работе вне офиса обязательно используйте корпоративный VPN для
+            защиты соединения.
+          </p>
+        </div>
+        <div class="tip-card fade-in">
+          <span class="tip-icon">💾</span>
+          <h3>Резервные копии</h3>
+          <p>
+            Регулярно создавайте резервные копии важных данных. Правило 3-2-1: 3
+            копии, 2 носителя, 1 удалённая.
+          </p>
+        </div>
+        <div class="tip-card fade-in">
+          <span class="tip-icon">🚫</span>
+          <h3>Не подключайте чужие носители</h3>
+          <p>
+            Найденная флешка или диск могут содержать вредоносное ПО. Никогда не
+            подключайте незнакомые устройства.
+          </p>
+        </div>
+        <div class="tip-card fade-in">
+          <span class="tip-icon">📞</span>
+          <h3>Сообщайте об инцидентах</h3>
+          <p>
+            Заметили подозрительную активность? Немедленно сообщайте в службу
+            информационной безопасности.
+          </p>
+        </div>
+        <div class="tip-card fade-in">
+          <span class="tip-icon">📚</span>
+          <h3>Учитесь постоянно</h3>
+          <p>
+            Угрозы меняются каждый день. Проходите обучение, читайте новости ИБ,
+            повышайте осведомлённость.
+          </p>
+        </div>
+        <div class="tip-card fade-in">
+          <span class="tip-icon">🔍</span>
+          <h3>Проверяйте ссылки перед кликом</h3>
+          <p>
+            Наведите курсор на ссылку и посмотрите в строку браузера — адрес
+            должен совпадать с ожидаемым сайтом.
+          </p>
+        </div>
+        <div class="tip-card fade-in">
+          <span class="tip-icon">🧩</span>
+          <h3>Разграничивайте рабочее и личное</h3>
+          <p>
+            Не используйте корпоративную почту для личных сервисов. Храните
+            рабочие файлы только на корпоративных ресурсах.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>
+        <div class="footer-logo">ИБАкадемия</div>
+        <div class="footer-copy" style="margin-top: 0.5rem">
+          Организация процесса обучения сотрудников по вопросам ИБ
+        </div>
+      </div>
+      <div class="footer-credits">
+        <div>Разработчики проекта</div>
+        <strong>Утеев Даниэль &nbsp;·&nbsp; Афанасьев Артём</strong>
+        <div style="margin-top: 0.3rem; opacity: 0.5; font-size: 0.7rem">
+          Дипломная работа · 2026
+        </div>
+      </div>
+    </footer>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+      defer
+    ></script>
+    <script src="script.js" defer></script>
+    <!-- ADMIN PANEL MODAL -->
+<div id="adminModal">
+  <div class="admin-modal-inner">
+    <div class="admin-modal-header">
+      <div class="admin-modal-title">🛠 Панель администратора</div>
+      <button class="admin-modal-close" id="adminModalClose">✕</button>
+    </div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-tab="modules">Модули</button>
+      <button class="admin-tab" data-tab="quiz">Тест</button>
+      <button class="admin-tab" data-tab="threats">Угрозы</button>
+      <button class="admin-tab" data-tab="news">Новости</button>
+      <button class="admin-tab" data-tab="tips">Советы</button>
+    </div>
+    <div class="admin-body">
+      <div class="admin-section active" id="adminSectionModules"></div>
+      <div class="admin-section" id="adminSectionQuiz"></div>
+      <div class="admin-section" id="adminSectionThreats"></div>
+      <div class="admin-section" id="adminSectionNews"></div>
+      <div class="admin-section" id="adminSectionTips"></div>
+    </div>
+  </div>
+</div>
+  </body>
+</html>
