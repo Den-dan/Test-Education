@@ -4023,6 +4023,19 @@ btn.style.animation = 'authGlow 1.5s ease-in-out infinite';
 // ============================================================
 async function initAuth() {
   const sb = getSupabase();
+
+  // Показываем заглушку пока грузится сессия
+  const navGuest = document.getElementById("navGuest");
+  const navUser = document.getElementById("navUser");
+  navGuest.style.display = "none";
+  navUser.style.display = "none";
+
+  const loadingPlaceholder = document.createElement("div");
+  loadingPlaceholder.id = "navLoadingPlaceholder";
+  loadingPlaceholder.style.cssText = "font-family:Rajdhani,sans-serif;font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);display:flex;align-items:center;gap:6px;";
+  loadingPlaceholder.innerHTML = createAuthLoadingHTML('ЗАГРУЗКА');
+  navGuest.parentNode.appendChild(loadingPlaceholder);
+
   try {
     const {
       data: { session },
@@ -4034,6 +4047,10 @@ async function initAuth() {
     }
   } catch (e) {
     console.warn("Session check failed:", e);
+  } finally {
+    const placeholder = document.getElementById("navLoadingPlaceholder");
+    if (placeholder) placeholder.remove();
+    if (!currentUser) navGuest.style.display = "block";
   }
 
   sb.auth.onAuthStateChange(async (event, session) => {
@@ -4058,7 +4075,6 @@ async function initAuth() {
       updateProgressBar();
       hideCertificate();
       closeProfileModal();
-      // Закрываем видео если открыто
       closeVideoModal();
     }
   });
@@ -4094,6 +4110,11 @@ async function afterLogin() {
   await checkCertificate();
   showRoleInfo();
   await loadContentFromDB();
+  // Создаём новую сессию для администратора при каждом входе
+if (currentUser && currentUser.email === 'admin@ibacademy.ru') {
+  currentSessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  localStorage.setItem('adminSessionId', currentSessionId);
+}
 }
 
 // Создаём профиль из user_metadata если его нет в БД
@@ -5103,11 +5124,39 @@ async function doLogout() {
   btn.innerHTML = createAuthLoadingHTML('ВЫХОДИМ');
   btn.style.animation = 'authGlow 1.5s ease-in-out infinite';
 
-  await sb.auth.signOut();
+  await new Promise(resolve => setTimeout(resolve, 2000));
 
-  btn.disabled = false;
-  btn.innerHTML = "Выйти";
-  btn.style.animation = '';
+  try {
+    currentUser = null;
+    userProfile = null;
+    completedMods = new Set();
+    bestScore = null;
+    previousScore = null;
+    watchedMods = new Set();
+    currentRole = "employee";
+    quizQuestions = [];
+    moduleScores = {};
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('quizState_')) localStorage.removeItem(key);
+    });
+    closeVideoModal();
+    closeProfileModal();
+    updateNavUI();
+    renderModules();
+    renderQuiz();
+    updateProgressBar();
+    hideCertificate();
+    showMandatoryOverlay();
+    const { error } = await sb.auth.signOut({ scope: 'local' });
+    if (error) console.warn("signOut error:", error);
+  } catch (e) {
+    console.warn("Logout error:", e);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = "Выйти";
+    btn.style.animation = '';
+    showMandatoryOverlay();
+  }
 }
 
 document
@@ -5617,7 +5666,8 @@ function adminSwitchTab(tab) {
     quiz: 'adminSectionQuiz',
     threats: 'adminSectionThreats',
     news: 'adminSectionNews',
-    tips: 'adminSectionTips'
+    tips: 'adminSectionTips',
+    history: 'adminSectionHistory'
   };
   if (map[tab]) {
     document.getElementById(map[tab]).classList.add('active');
@@ -5626,6 +5676,7 @@ function adminSwitchTab(tab) {
     if (tab === 'threats') renderAdminThreats();
     if (tab === 'news') renderAdminNews();
     if (tab === 'tips') renderAdminTips();
+    if (tab === 'history') renderAdminHistory();
   }
 }
 
@@ -5680,9 +5731,12 @@ function renderAdminModuleCards() {
 
 async function saveAdminModule(role, i) {
   const mod = MODULES_BY_ROLE[role][i];
-  const undoKey = `module-${role}-${i}`;
-  adminUndoStack[undoKey] = { ...mod };
-  localStorage.setItem('adminUndoStack', JSON.stringify(adminUndoStack));
+
+  // Сохраняем состояние ДО изменения
+  const beforeData = {
+    title: mod.title, desc: mod.desc,
+    videoId: mod.videoId, duration: mod.duration, tags: mod.tags
+  };
 
   const title = document.getElementById(`amod-${role}-${i}-title`).value.trim();
   const desc = document.getElementById(`amod-${role}-${i}-desc`).value.trim();
@@ -5704,12 +5758,16 @@ async function saveAdminModule(role, i) {
   if (error) {
     showAdminMsg(msgEl, '❌ Ошибка: ' + error.message, 'err');
   } else {
+    // Записываем в историю
+    const afterData = { title, desc, videoId, duration, tags: mod.tags };
+    await recordChange('module', `${role}:${mod.num}`, beforeData, afterData);
+
     MODULES_BY_ROLE[role][i].title = title;
     MODULES_BY_ROLE[role][i].desc = desc;
     MODULES_BY_ROLE[role][i].videoId = videoId;
     MODULES_BY_ROLE[role][i].duration = duration;
     if (role === currentRole) renderModules();
-    showAdminMsg(msgEl, '✅ Сохранено!', 'ok', undoKey, undoAdminChange);
+    showAdminMsg(msgEl, '✅ Сохранено!', 'ok');
   }
 }
 
@@ -5770,9 +5828,12 @@ function renderAdminQuizCards() {
 
 async function saveAdminQuiz(role, i) {
   const q = QUESTIONS_BY_ROLE[role][i];
-  const undoKey = `quiz-${role}-${i}`;
-  adminUndoStack[undoKey] = { ...q, options: [...q.options] };
-  localStorage.setItem('adminUndoStack', JSON.stringify(adminUndoStack));
+
+  // Сохраняем состояние ДО изменения
+  const beforeData = {
+    q: q.q, options: [...q.options],
+    correct: q.correct, feedback: q.feedback, module: q.module
+  };
 
   const question = document.getElementById(`aq-${role}-${i}-q`).value.trim();
   const feedback = document.getElementById(`aq-${role}-${i}-fb`).value.trim();
@@ -5798,12 +5859,16 @@ async function saveAdminQuiz(role, i) {
   if (error) {
     showAdminMsg(msgEl, '❌ Ошибка: ' + error.message, 'err');
   } else {
+    // Записываем в историю
+    const afterData = { q: question, options, correct, feedback, module: q.module };
+    await recordChange('quiz', `${role}:${i}`, beforeData, afterData);
+
     QUESTIONS_BY_ROLE[role][i].q = question;
     QUESTIONS_BY_ROLE[role][i].options = options;
     QUESTIONS_BY_ROLE[role][i].correct = correct;
     QUESTIONS_BY_ROLE[role][i].feedback = feedback;
     if (role === currentRole) renderQuiz();
-    showAdminMsg(msgEl, '✅ Сохранено!', 'ok', undoKey, undoAdminChange);
+    showAdminMsg(msgEl, '✅ Сохранено!', 'ok');
   }
 }
 
@@ -5852,9 +5917,14 @@ function renderAdminThreats() {
 }
 
 async function saveAdminThreat(i) {
-  const undoKey = `threat-${i}`;
-  adminUndoStack[undoKey] = { ...threatsData[i] };
-  localStorage.setItem('adminUndoStack', JSON.stringify(adminUndoStack));
+  // Сохраняем состояние ДО изменения
+  const beforeData = {
+    icon: threatsData[i].icon,
+    title: threatsData[i].title,
+    desc: threatsData[i].desc,
+    level: threatsData[i].level,
+    levelText: threatsData[i].levelText
+  };
 
   const icon = document.getElementById(`athr-${i}-icon`).value.trim();
   const title = document.getElementById(`athr-${i}-title`).value.trim();
@@ -5877,9 +5947,13 @@ async function saveAdminThreat(i) {
   if (error) {
     showAdminMsg(msgEl, '❌ Ошибка: ' + error.message, 'err');
   } else {
+    // Записываем в историю
+    const afterData = { icon, title, desc, level, levelText: levelTextMap[level] };
+    await recordChange('threat', `${i}`, beforeData, afterData);
+
     threatsData[i] = { icon, title, desc, level, levelText: levelTextMap[level] };
     renderThreatsSection();
-    showAdminMsg(msgEl, '✅ Сохранено!', 'ok', undoKey, undoAdminChange);
+    showAdminMsg(msgEl, '✅ Сохранено!', 'ok');
   }
 }
 
@@ -5934,9 +6008,15 @@ function renderAdminNews() {
 }
 
 async function saveAdminNews(i) {
-  const undoKey = `news-${i}`;
-  adminUndoStack[undoKey] = { ...NEWS_ITEMS[i] };
-  localStorage.setItem('adminUndoStack', JSON.stringify(adminUndoStack));
+  // Сохраняем состояние ДО изменения
+  const beforeData = {
+    title: NEWS_ITEMS[i].title,
+    desc: NEWS_ITEMS[i].desc,
+    impact: NEWS_ITEMS[i].impact,
+    date: NEWS_ITEMS[i].date,
+    cat: NEWS_ITEMS[i].cat,
+    videoId: NEWS_ITEMS[i].videoId
+  };
 
   const title = document.getElementById(`anews-${i}-title`).value.trim();
   const desc = document.getElementById(`anews-${i}-desc`).value.trim();
@@ -5960,10 +6040,14 @@ async function saveAdminNews(i) {
   if (error) {
     showAdminMsg(msgEl, '❌ Ошибка: ' + error.message, 'err');
   } else {
+    // Записываем в историю
+    const afterData = { title, desc, impact, date, cat, videoId };
+    await recordChange('news', `${i}`, beforeData, afterData);
+
     NEWS_ITEMS[i] = { ...NEWS_ITEMS[i], title, desc, impact, date, cat, videoId,
       thumb: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` };
     renderNews();
-    showAdminMsg(msgEl, '✅ Сохранено!', 'ok', undoKey, undoAdminChange);
+    showAdminMsg(msgEl, '✅ Сохранено!', 'ok');
   }
 }
 
@@ -6010,9 +6094,12 @@ function renderAdminTips() {
 }
 
 async function saveAdminTip(i) {
-  const undoKey = `tip-${i}`;
-  adminUndoStack[undoKey] = { ...tipsData[i] };
-  localStorage.setItem('adminUndoStack', JSON.stringify(adminUndoStack));
+  // Сохраняем состояние ДО изменения
+  const beforeData = {
+    icon: tipsData[i].icon,
+    title: tipsData[i].title,
+    desc: tipsData[i].desc
+  };
 
   const icon = document.getElementById(`atip-${i}-icon`).value.trim();
   const title = document.getElementById(`atip-${i}-title`).value.trim();
@@ -6033,9 +6120,13 @@ async function saveAdminTip(i) {
   if (error) {
     showAdminMsg(msgEl, '❌ Ошибка: ' + error.message, 'err');
   } else {
+    // Записываем в историю
+    const afterData = { icon, title, desc };
+    await recordChange('tip', `${i}`, beforeData, afterData);
+
     tipsData[i] = { icon, title, desc };
     renderTipsSection();
-    showAdminMsg(msgEl, '✅ Сохранено!', 'ok', undoKey, undoAdminChange);
+    showAdminMsg(msgEl, '✅ Сохранено!', 'ok');
   }
 }
 
@@ -6356,4 +6447,345 @@ async function loadContentFromDB() {
   renderNews();
   renderModules();
   renderQuiz();
+}
+
+// ============================================================
+//  ИСТОРИЯ ИЗМЕНЕНИЙ (GIT-ПОДОБНЫЙ ЖУРНАЛ)
+// ============================================================
+
+let currentSessionId = null;
+
+function getSessionId() {
+  if (!currentSessionId) {
+    // Проверяем есть ли сессия в localStorage (переживает перезагрузку)
+    const stored = localStorage.getItem('adminSessionId');
+    if (stored) {
+      currentSessionId = stored;
+    } else {
+      currentSessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+      localStorage.setItem('adminSessionId', currentSessionId);
+    }
+  }
+  return currentSessionId;
+}
+
+// Вызывай эту функцию ПЕРЕД каждым сохранением вместо старого adminUndoStack
+async function recordChange(contentType, contentKey, beforeData, afterData) {
+  const sb = getSupabase();
+  const sessionId = getSessionId();
+
+  try {
+    await sb.from('content_history').insert({
+      session_id: sessionId,
+      content_type: contentType,
+      content_key: contentKey,
+      before_data: beforeData,
+      after_data: afterData,
+      changed_at: new Date().toISOString()
+    });
+  } catch(e) {
+    console.warn('recordChange error:', e);
+  }
+}
+
+// Откат одного конкретного изменения
+async function revertChange(historyId, beforeData, contentType, contentKey) {
+  const sb = getSupabase();
+
+  try {
+    // Применяем before_data обратно
+    await applyContentData(contentType, contentKey, beforeData);
+
+    // Помечаем запись как откатанную
+    await sb.from('content_history').update({
+      note: 'REVERTED at ' + new Date().toISOString()
+    }).eq('id', historyId);
+
+    // Записываем сам откат как новое изменение
+    await sb.from('content_history').insert({
+      session_id: getSessionId(),
+      content_type: contentType,
+      content_key: contentKey,
+      before_data: beforeData,
+      after_data: beforeData,
+      changed_at: new Date().toISOString(),
+      note: 'REVERT of ' + historyId
+    });
+
+    renderAdminHistory();
+  } catch(e) {
+    console.warn('revertChange error:', e);
+  }
+}
+
+// Применяет данные из истории к реальному контенту
+async function applyContentData(contentType, contentKey, data) {
+  const sb = getSupabase();
+
+  if (contentType === 'module') {
+    const [role, num] = contentKey.split(':');
+    await sb.from('modules_content').upsert({
+      role, num: parseInt(num),
+      title: data.title,
+      description: data.desc,
+      video_id: data.videoId,
+      duration: data.duration,
+      tags: data.tags,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'role,num' });
+    const idx = MODULES_BY_ROLE[role].findIndex(m => m.num === parseInt(num));
+    if (idx !== -1) Object.assign(MODULES_BY_ROLE[role][idx], data);
+    if (role === currentRole) renderModules();
+
+  } else if (contentType === 'quiz') {
+    const [role, i] = contentKey.split(':');
+    await sb.from('quiz_content').upsert({
+      role, question_index: parseInt(i),
+      module_tag: data.module,
+      question: data.q,
+      options: data.options,
+      correct_index: data.correct,
+      feedback: data.feedback,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'role,question_index' });
+    Object.assign(QUESTIONS_BY_ROLE[role][parseInt(i)], data);
+    if (role === currentRole) renderQuiz();
+
+  } else if (contentType === 'threat') {
+    const idx = parseInt(contentKey);
+    await sb.from('threats_content').upsert({
+      id: idx + 1,
+      icon: data.icon, title: data.title,
+      description: data.desc, level: data.level,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+    threatsData[idx] = { ...data };
+    renderThreatsSection();
+
+  } else if (contentType === 'news') {
+    const idx = parseInt(contentKey);
+    await sb.from('news_content').upsert({
+      id: idx + 1,
+      title: data.title, description: data.desc,
+      impact: data.impact, date: data.date,
+      category: data.cat, video_id: data.videoId,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+    Object.assign(NEWS_ITEMS[idx], data);
+    renderNews();
+
+  } else if (contentType === 'tip') {
+    const idx = parseInt(contentKey);
+    await sb.from('tips_content').upsert({
+      id: idx + 1,
+      icon: data.icon, title: data.title,
+      description: data.desc,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+    tipsData[idx] = { ...data };
+    renderTipsSection();
+  }
+}
+
+// ============================================================
+//  РЕНДЕР ЖУРНАЛА ИЗМЕНЕНИЙ
+// ============================================================
+
+async function renderAdminHistory() {
+  const sb = getSupabase();
+  const container = document.getElementById('adminSectionHistory');
+  if (!container) return;
+
+  container.innerHTML = `<div style="color:var(--text-dim);font-size:0.85rem">Загружаем журнал...</div>`;
+
+  const { data, error } = await sb
+    .from('content_history')
+    .select('*')
+    .order('changed_at', { ascending: false })
+    .limit(200);
+
+  if (error || !data || data.length === 0) {
+    container.innerHTML = `<div style="color:var(--text-dim);font-size:0.85rem">Изменений пока нет.</div>`;
+    return;
+  }
+
+  // Группируем по сессиям
+  const sessions = {};
+  data.forEach(row => {
+    if (!sessions[row.session_id]) sessions[row.session_id] = [];
+    sessions[row.session_id].push(row);
+  });
+
+  const typeLabels = {
+    module: '📦 Модуль',
+    quiz: '❓ Вопрос теста',
+    threat: '⚠️ Угроза',
+    news: '📰 Новость',
+    tip: '💡 Совет'
+  };
+
+  const contentKeyLabel = (type, key) => {
+    if (type === 'module') {
+      const [role, num] = key.split(':');
+      return `${ROLE_LABELS[role] || role} · Модуль ${num}`;
+    }
+    if (type === 'quiz') {
+      const [role, i] = key.split(':');
+      return `${ROLE_LABELS[role] || role} · Вопрос ${parseInt(i) + 1}`;
+    }
+    if (type === 'threat') return `Угроза ${parseInt(key) + 1}`;
+    if (type === 'news') return `Новость ${parseInt(key) + 1}`;
+    if (type === 'tip') return `Совет ${parseInt(key) + 1}`;
+    return key;
+  };
+
+  container.innerHTML = Object.entries(sessions).map(([sessionId, rows]) => {
+    const sessionDate = new Date(rows[0].changed_at).toLocaleString('ru-RU');
+    const isCurrentSession = sessionId === currentSessionId;
+
+    const rowsHTML = rows.map(row => {
+      const isReverted = row.note && row.note.startsWith('REVERTED');
+      const isRevert = row.note && row.note.startsWith('REVERT of');
+      const date = new Date(row.changed_at).toLocaleTimeString('ru-RU');
+
+      let statusBadge = '';
+      if (isReverted) statusBadge = `<span style="color:var(--danger);font-size:0.65rem;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--danger);padding:0.1rem 0.4rem;border-radius:2px">откатано</span>`;
+      if (isRevert) statusBadge = `<span style="color:#ffa500;font-size:0.65rem;letter-spacing:1px;text-transform:uppercase;border:1px solid #ffa500;padding:0.1rem 0.4rem;border-radius:2px">откат</span>`;
+
+      return `
+        <div style="
+          display:flex;align-items:center;justify-content:space-between;
+          padding:0.6rem 1rem;border-bottom:1px solid var(--border);gap:1rem;
+          opacity:${isReverted ? '0.5' : '1'};
+        ">
+          <div style="display:flex;flex-direction:column;gap:0.2rem;flex:1">
+            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+              <span style="font-family:Rajdhani,sans-serif;font-size:0.8rem;color:var(--accent)">${typeLabels[row.content_type] || row.content_type}</span>
+              <span style="font-size:0.8rem;color:var(--text)">${contentKeyLabel(row.content_type, row.content_key)}</span>
+              ${statusBadge}
+            </div>
+            <div style="font-size:0.72rem;color:var(--text-dim)">${date}</div>
+          </div>
+          ${!isReverted && !isRevert ? `
+            <div style="display:flex;gap:0.5rem">
+              <button onclick="showDiff('${row.id}')" style="
+                background:transparent;border:1px solid var(--border);color:var(--text-dim);
+                font-family:Rajdhani,sans-serif;font-size:0.7rem;letter-spacing:1px;
+                text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:2px;cursor:pointer;
+              ">Diff</button>
+              <button onclick="revertChange('${row.id}', ${JSON.stringify(JSON.stringify(row.before_data))}, '${row.content_type}', '${row.content_key}')" style="
+                background:transparent;border:1px solid var(--danger);color:var(--danger);
+                font-family:Rajdhani,sans-serif;font-size:0.7rem;letter-spacing:1px;
+                text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:2px;cursor:pointer;
+              ">↩ Откат</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div style="
+        background:var(--bg);border:1px solid ${isCurrentSession ? 'rgba(0,212,255,0.4)' : 'var(--border)'};
+        border-radius:4px;overflow:hidden;margin-bottom:1rem;
+      ">
+        <div style="
+          display:flex;align-items:center;justify-content:space-between;
+          padding:0.75rem 1rem;background:${isCurrentSession ? 'rgba(0,212,255,0.06)' : 'var(--surface)'};
+          border-bottom:1px solid var(--border);
+        ">
+          <div>
+            <span style="font-family:Rajdhani,sans-serif;font-size:0.9rem;font-weight:700;color:${isCurrentSession ? 'var(--accent)' : 'var(--text)'}">
+              ${isCurrentSession ? '● Текущая сессия' : 'Сессия'}
+            </span>
+            <span style="font-size:0.75rem;color:var(--text-dim);margin-left:0.75rem">${sessionDate}</span>
+            <span style="
+              margin-left:0.75rem;font-family:Rajdhani,sans-serif;font-size:0.65rem;
+              letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);
+              border:1px solid var(--border);padding:0.1rem 0.4rem;border-radius:2px;
+            ">${rows.length} изм.</span>
+          </div>
+          <button onclick="revertSession('${sessionId}')" style="
+            background:transparent;border:1px solid var(--danger);color:var(--danger);
+            font-family:Rajdhani,sans-serif;font-size:0.7rem;letter-spacing:1px;
+            text-transform:uppercase;padding:0.3rem 0.8rem;border-radius:2px;cursor:pointer;
+          ">↩ Откатить всю сессию</button>
+        </div>
+        ${rowsHTML}
+      </div>
+    `;
+  }).join('');
+}
+
+// Откат всей сессии
+async function revertSession(sessionId) {
+  const sb = getSupabase();
+  const { data } = await sb
+    .from('content_history')
+    .select('*')
+    .eq('session_id', sessionId)
+    .is('note', null)
+    .order('changed_at', { ascending: false });
+
+  if (!data || data.length === 0) return;
+
+  for (const row of data) {
+    await applyContentData(row.content_type, row.content_key, row.before_data);
+    await sb.from('content_history').update({
+      note: 'REVERTED at ' + new Date().toISOString()
+    }).eq('id', row.id);
+  }
+
+  renderAdminHistory();
+}
+
+// Показывает разницу между было и стало
+async function showDiff(historyId) {
+  const sb = getSupabase();
+  const { data } = await sb.from('content_history').select('*').eq('id', historyId).single();
+  if (!data) return;
+
+  const before = data.before_data;
+  const after = data.after_data;
+
+  const diffLines = Object.keys(after).map(key => {
+    const b = JSON.stringify(before[key] || '');
+    const a = JSON.stringify(after[key] || '');
+    if (b === a) return null;
+    return `
+      <div style="margin-bottom:0.75rem">
+        <div style="font-family:Rajdhani,sans-serif;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.3rem">${key}</div>
+        <div style="background:rgba(255,59,92,0.08);border-left:3px solid var(--danger);padding:0.4rem 0.75rem;font-size:0.8rem;color:var(--danger);margin-bottom:0.2rem;word-break:break-word">− ${before[key] || '(пусто)'}</div>
+        <div style="background:rgba(0,229,160,0.08);border-left:3px solid var(--success);padding:0.4rem 0.75rem;font-size:0.8rem;color:var(--success);word-break:break-word">+ ${after[key] || '(пусто)'}</div>
+      </div>
+    `;
+  }).filter(Boolean).join('');
+
+  // Простой оверлей для diff
+  const existing = document.getElementById('diffOverlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'diffOverlay';
+  overlay.style.cssText = `
+    position:fixed;inset:0;z-index:9999;
+    background:rgba(2,6,12,0.95);backdrop-filter:blur(16px);
+    display:flex;align-items:center;justify-content:center;padding:2rem;
+  `;
+  overlay.innerHTML = `
+    <div style="
+      background:var(--surface);border:1px solid var(--border);border-radius:6px;
+      width:100%;max-width:600px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;
+    ">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;border-bottom:1px solid var(--border)">
+        <div style="font-family:Rajdhani,sans-serif;font-size:1rem;font-weight:700;color:#fff">Что изменилось</div>
+        <button onclick="document.getElementById('diffOverlay').remove()" style="background:none;border:none;color:var(--text-dim);font-size:1.4rem;cursor:pointer">✕</button>
+      </div>
+      <div style="padding:1.5rem;overflow-y:auto">
+        ${diffLines || '<div style="color:var(--text-dim)">Изменений не найдено</div>'}
+      </div>
+    </div>
+  `;
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
 }
