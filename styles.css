@@ -759,6 +759,7 @@ nav {
   border-radius: 8px;
   width: 100%;
   max-width: 520px;
+  max-height: 100%;
   box-shadow:
     0 0 60px rgba(0, 119, 255, 0.15),
     0 40px 80px rgba(0, 0, 0, 0.5);
@@ -2672,6 +2673,12 @@ h2 {
   padding: 1.5rem;
   position: relative;
   overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.tip-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0, 212, 255, 0.15);
+  border-color: rgba(0, 212, 255, 0.4);
 }
 .tip-card::after {
   content: "";
@@ -3100,3 +3107,17 @@ body.light .theme-toggle-btn:hover {
   gap: 3px;
 }
 
+@keyframes spinRing {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes resultPulse {
+  0%, 100% { opacity: 1; text-shadow: 0 0 8px rgba(0,212,255,0.4); }
+  50% { opacity: 0.5; text-shadow: 0 0 20px rgba(0,212,255,0.9); }
+}
+
+@keyframes resultFade {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
