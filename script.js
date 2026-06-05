@@ -3760,15 +3760,22 @@ function selectOption(idx) {
   if (!moduleScores[q.module])
     moduleScores[q.module] = { correct: 0, total: 0 };
   moduleScores[q.module].total++;
+  
   const btns = document.querySelectorAll(".quiz-option");
   btns.forEach((b) => (b.disabled = true));
+  
+  // Подсвечиваем по data-idx, а не по позиции в DOM
   if (idx === q.correct) {
-    btns[idx].classList.add("correct");
+    btns.forEach((b) => {
+      if (parseInt(b.dataset.idx) === idx) b.classList.add("correct");
+    });
   } else {
     btns.forEach((b) => {
-      if (parseInt(b.dataset.idx) === q.correct) b.classList.add("wrong");
+      if (parseInt(b.dataset.idx) === idx) b.classList.add("wrong");
+      if (parseInt(b.dataset.idx) === q.correct) b.classList.add("correct");
     });
   }
+  
   if (idx === q.correct) {
     quizScore++;
     moduleScores[q.module].correct++;
