@@ -6454,6 +6454,7 @@ async function loadContentFromDB() {
 // ============================================================
 
 let currentSessionId = null;
+let historyCache = {};
 
 function getSessionId() {
   if (!currentSessionId) {
@@ -6486,6 +6487,15 @@ async function recordChange(contentType, contentKey, beforeData, afterData) {
   } catch(e) {
     console.warn('recordChange error:', e);
   }
+}
+
+async function revertChangeById(historyId) {
+  const row = historyCache[historyId];
+  if (!row) {
+    console.warn('revertChangeById: запись не найдена в кэше', historyId);
+    return;
+  }
+  await revertChange(historyId, row.before_data, row.content_type, row.content_key);
 }
 
 // Откат одного конкретного изменения
@@ -6596,7 +6606,10 @@ async function renderAdminHistory() {
   const container = document.getElementById('adminSectionHistory');
   if (!container) return;
 
-  container.innerHTML = `<div style="color:var(--text-dim);font-size:0.85rem">Загружаем журнал...</div>`;
+  const isReload = container.children.length > 0;
+  if (!isReload) {
+    container.innerHTML = `<div style="color:var(--text-dim);font-size:0.85rem">Загружаем журнал...</div>`;
+  }
 
   const { data, error } = await sb
     .from('content_history')
@@ -6612,6 +6625,7 @@ async function renderAdminHistory() {
   // Группируем по сессиям
   const sessions = {};
   data.forEach(row => {
+    historyCache[row.id] = row;
     if (!sessions[row.session_id]) sessions[row.session_id] = [];
     sessions[row.session_id].push(row);
   });
@@ -6673,7 +6687,7 @@ async function renderAdminHistory() {
                 font-family:Rajdhani,sans-serif;font-size:0.7rem;letter-spacing:1px;
                 text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:2px;cursor:pointer;
               ">Diff</button>
-              <button onclick="revertChange('${row.id}', ${JSON.stringify(JSON.stringify(row.before_data))}, '${row.content_type}', '${row.content_key}')" style="
+              <button onclick="revertChangeById('${row.id}')" style="
                 background:transparent;border:1px solid var(--danger);color:var(--danger);
                 font-family:Rajdhani,sans-serif;font-size:0.7rem;letter-spacing:1px;
                 text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:2px;cursor:pointer;
