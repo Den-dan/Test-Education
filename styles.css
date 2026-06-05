@@ -2431,6 +2431,22 @@ h2 {
   display: block;
   opacity: 0.7;
 }
+.quiz-practical-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 165, 0, 0.1);
+  border: 1px solid rgba(255, 165, 0, 0.4);
+  border-radius: 3px;
+  padding: 0.5rem 1rem;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #ffa500;
+  margin-bottom: 1rem;
+}
 .quiz-options {
   display: flex;
   flex-direction: column;
