@@ -2760,6 +2760,8 @@ let quizCurrent = 0,
 let moduleScores = {};
 let currentRole = "employee";
 
+let quizAnswers = [];
+
 // THEME
 function toggleTheme() {
   const isLight = document.body.classList.toggle("light");
@@ -3389,29 +3391,99 @@ async function handleCompleteBtn(e, num) {
 //  RENDER QUIZ
 // ============================================================
 function renderQuiz() {
-  quizQuestions =
-    QUESTIONS_BY_ROLE[currentRole] || QUESTIONS_BY_ROLE["employee"];
+  quizQuestions = QUESTIONS_BY_ROLE[currentRole] || QUESTIONS_BY_ROLE['employee'];
   const n = quizQuestions.length;
-  document.getElementById("quizDesc").textContent =
-    `Проверьте знания по всем ${Math.ceil(
-      n / 2.5,
-    )} модулям программы. Тест адаптирован под вашу должность — ${
-      ROLE_LABELS[currentRole] || "Сотрудник"
-    }.`;
-  document.getElementById("quizPerfectDesc").textContent =
+  document.getElementById('quizDesc').textContent =
+    `Проверьте знания по всем ${Math.ceil(n / 2.5)} модулям программы. Тест адаптирован под вашу должность — ${ROLE_LABELS[currentRole] || 'Сотрудник'}.`;
+  document.getElementById('quizPerfectDesc').textContent =
     `Вы ответили верно на все ${n} вопросов — 100% правильных ответов. Превосходно!`;
+
+  // Пытаемся восстановить сохранённое состояние
+  const saved = currentUser
+    ? localStorage.getItem(`quizState_${currentUser.id}`)
+    : null;
+  const state = saved ? JSON.parse(saved) : null;
+
+  if (state && state.role === currentRole && state.current > 0) {
+    quizCurrent = state.current;
+    quizScore = state.score;
+    quizAnswered = state.answered;
+    moduleScores = state.moduleScores || {};
+    quizAnswers = state.answers || [];
+  } else {
+    quizCurrent = 0;
+    quizScore = 0;
+    quizAnswered = false;
+    moduleScores = {};
+    quizAnswers = [];
+    quizQuestions.forEach(q => {
+      if (!moduleScores[q.module]) moduleScores[q.module] = { correct: 0, total: 0 };
+    });
+  }
+
+  document.getElementById('quizNext').textContent = 'Следующий →';
+  document.getElementById('quizPerfectBanner').classList.remove('show');
+  document.getElementById('quizHistoryPanel').classList.remove('show');
+  document.getElementById('quizResult').style.display = 'none';
+  renderQuestion();
+
+  // Показываем баннер восстановления если есть прогресс
+  if (state && state.role === currentRole && state.current > 0) {
+    showQuizResumeBanner(state.current, n);
+  }
+}
+
+function showQuizResumeBanner(current, total) {
+  const existing = document.getElementById('quizResumeBanner');
+  if (existing) existing.remove();
+
+  const banner = document.createElement('div');
+  banner.id = 'quizResumeBanner';
+  banner.style.cssText = `
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  `;
+  banner.innerHTML = `
+    <span>↩ Прогресс восстановлен — вопрос ${current + 1} из ${total}</span>
+    <button onclick="resetQuizFromBanner()" style="
+      background: transparent;
+      border: 1px solid var(--text-dim);
+      color: var(--text-dim);
+      font-family: Rajdhani, sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 0.2rem 0.6rem;
+      border-radius: 2px;
+      cursor: pointer;
+    ">Начать заново</button>
+  `;
+
+  const quizBody = document.getElementById('quizBody');
+  quizBody.parentNode.insertBefore(banner, quizBody);
+}
+
+function resetQuizFromBanner() {
+  clearQuizState();
+  const banner = document.getElementById('quizResumeBanner');
+  if (banner) banner.remove();
   quizCurrent = 0;
   quizScore = 0;
   quizAnswered = false;
   moduleScores = {};
-  quizQuestions.forEach((q) => {
-    if (!moduleScores[q.module])
-      moduleScores[q.module] = { correct: 0, total: 0 };
+  quizAnswers = [];
+  quizQuestions.forEach(q => {
+    if (!moduleScores[q.module]) moduleScores[q.module] = { correct: 0, total: 0 };
   });
-  document.getElementById("quizNext").textContent = "Следующий →";
-  document.getElementById("quizPerfectBanner").classList.remove("show");
-  document.getElementById("quizHistoryPanel").classList.remove("show");
-  document.getElementById("quizResult").style.display = "none";
   renderQuestion();
 }
 
@@ -3479,6 +3551,8 @@ function selectOption(idx) {
   document.getElementById("quizNav").style.display = "flex";
   if (quizCurrent === quizQuestions.length - 1)
     document.getElementById("quizNext").textContent = "Посмотреть результат →";
+  quizAnswers[quizCurrent] = { selected: idx, correct: q.correct };
+  saveQuizState();
 }
 
 function nextQuestion() {
@@ -3489,6 +3563,7 @@ function nextQuestion() {
 }
 
 async function showResult() {
+  clearQuizState();
   document.getElementById("quizProgressBar").style.width = "100%";
   document.getElementById("quizProgressLabel").textContent = "Тест завершён";
   document.getElementById("quizBody").innerHTML = "";
@@ -3589,6 +3664,7 @@ async function showResult() {
 }
 
 function restartQuiz() {
+  clearQuizState();
   quizCurrent = 0;
   quizScore = 0;
   quizAnswered = false;
@@ -4356,12 +4432,14 @@ async function pmFillStats() {
 // ============================================================
 
 let adminCurrentRole = localStorage.getItem('adminSelectedRole') || 'employee';
+let adminUndoStack = JSON.parse(localStorage.getItem('adminUndoStack') || '{}');
 
 function openAdminModal() {
   const modal = document.getElementById('adminModal');
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
-  adminSwitchTab('modules');
+  const savedTab = localStorage.getItem('adminLastTab') || 'modules';
+  adminSwitchTab(savedTab);
 }
 
 function closeAdminModal() {
@@ -4370,6 +4448,7 @@ function closeAdminModal() {
 }
 
 function adminSwitchTab(tab) {
+  localStorage.setItem('adminLastTab', tab);
   document.querySelectorAll('.admin-tab').forEach(t =>
     t.classList.toggle('active', t.dataset.tab === tab)
   );
@@ -4433,14 +4512,19 @@ function renderAdminModuleCards() {
         <label>Длительность</label>
         <input class="admin-input" id="amod-${role}-${i}-dur" value="${escAttr(mod.duration)}" placeholder="например: 11:12">
       </div>
-      <div class="admin-msg" id="amod-msg-${role}-${i}"></div>
+      <div class="admin-msg ${adminUndoStack[`module-${role}-${i}`] ? 'show ok' : ''}" id="amod-msg-${role}-${i}">${adminUndoStack[`module-${role}-${i}`] ? '✅ Сохранено!' : ''}</div>
       <button class="admin-save-btn" onclick="saveAdminModule('${role}', ${i})">💾 Сохранить</button>
     </div>
   `).join('');
+  restoreUndoButtons();
 }
 
 async function saveAdminModule(role, i) {
   const mod = MODULES_BY_ROLE[role][i];
+  const undoKey = `module-${role}-${i}`;
+  adminUndoStack[undoKey] = { ...mod };
+  localStorage.setItem('adminUndoStack', JSON.stringify(adminUndoStack));
+
   const title = document.getElementById(`amod-${role}-${i}-title`).value.trim();
   const desc = document.getElementById(`amod-${role}-${i}-desc`).value.trim();
   const videoId = document.getElementById(`amod-${role}-${i}-vid`).value.trim();
@@ -4461,7 +4545,7 @@ async function saveAdminModule(role, i) {
     MODULES_BY_ROLE[role][i].videoId = videoId;
     MODULES_BY_ROLE[role][i].duration = duration;
     if (role === currentRole) renderModules();
-    showAdminMsg(msgEl, '✅ Сохранено!', 'ok');
+    showAdminMsg(msgEl, '✅ Сохранено!', 'ok', undoKey, undoAdminChange);
   }
 }
 
@@ -4513,14 +4597,19 @@ function renderAdminQuizCards() {
         <label>Объяснение ответа</label>
         <textarea class="admin-textarea" id="aq-${role}-${i}-fb">${q.feedback}</textarea>
       </div>
-      <div class="admin-msg" id="aq-msg-${role}-${i}"></div>
+      <div class="admin-msg${adminUndoStack[`quiz-${role}-${i}`] ? 'show ok' : ''}" id="aq-msg-${role}-${i}">${adminUndoStack[`quiz-${role}-${i}`] ? '✅ Сохранено!' : ''}</div>
       <button class="admin-save-btn" onclick="saveAdminQuiz('${role}', ${i})">💾 Сохранить</button>
     </div>
   `).join('');
+  restoreUndoButtons();
 }
 
 async function saveAdminQuiz(role, i) {
   const q = QUESTIONS_BY_ROLE[role][i];
+  const undoKey = `quiz-${role}-${i}`;
+  adminUndoStack[undoKey] = { ...q, options: [...q.options] };
+  localStorage.setItem('adminUndoStack', JSON.stringify(adminUndoStack));
+
   const question = document.getElementById(`aq-${role}-${i}-q`).value.trim();
   const feedback = document.getElementById(`aq-${role}-${i}-fb`).value.trim();
   const options = [0,1,2,3].map(oi =>
@@ -4545,7 +4634,7 @@ async function saveAdminQuiz(role, i) {
     QUESTIONS_BY_ROLE[role][i].correct = correct;
     QUESTIONS_BY_ROLE[role][i].feedback = feedback;
     if (role === currentRole) renderQuiz();
-    showAdminMsg(msgEl, '✅ Сохранено!', 'ok');
+    showAdminMsg(msgEl, '✅ Сохранено!', 'ok', undoKey, undoAdminChange);
   }
 }
 
@@ -4586,13 +4675,18 @@ function renderAdminThreats() {
           <option value="level-low" ${t.level==='level-low'?'selected':''}>● Управляемый риск</option>
         </select>
       </div>
-      <div class="admin-msg" id="athr-msg-${i}"></div>
+      <div class="admin-msg${adminUndoStack[`threat-${i}`] ? 'show ok' : ''}" id="athr-msg-${i}">${adminUndoStack[`threat-${i}`] ? '✅ Сохранено!' : ''}</div>
       <button class="admin-save-btn" onclick="saveAdminThreat(${i})">💾 Сохранить</button>
     </div>
   `).join('');
+  restoreUndoButtons();
 }
 
 async function saveAdminThreat(i) {
+  const undoKey = `threat-${i}`;
+  adminUndoStack[undoKey] = { ...threatsData[i] };
+  localStorage.setItem('adminUndoStack', JSON.stringify(adminUndoStack));
+
   const icon = document.getElementById(`athr-${i}-icon`).value.trim();
   const title = document.getElementById(`athr-${i}-title`).value.trim();
   const desc = document.getElementById(`athr-${i}-desc`).value.trim();
@@ -4611,7 +4705,7 @@ async function saveAdminThreat(i) {
   } else {
     threatsData[i] = { icon, title, desc, level, levelText: levelTextMap[level] };
     renderThreatsSection();
-    showAdminMsg(msgEl, '✅ Сохранено!', 'ok');
+    showAdminMsg(msgEl, '✅ Сохранено!', 'ok', undoKey, undoAdminChange);
   }
 }
 
@@ -4658,13 +4752,18 @@ function renderAdminNews() {
         <label>YouTube Video ID</label>
         <input class="admin-input" id="anews-${i}-vid" value="${escAttr(item.videoId)}" placeholder="например: PKHH_gvJ_hA">
       </div>
-      <div class="admin-msg" id="anews-msg-${i}"></div>
+      <div class="admin-msg${adminUndoStack[`news-${i}`] ? 'show ok' : ''}" id="anews-msg-${i}">${adminUndoStack[`news-${i}`] ? '✅ Сохранено!' : ''}</div>
       <button class="admin-save-btn" onclick="saveAdminNews(${i})">💾 Сохранить</button>
     </div>
   `).join('');
+  restoreUndoButtons();
 }
 
 async function saveAdminNews(i) {
+  const undoKey = `news-${i}`;
+  adminUndoStack[undoKey] = { ...NEWS_ITEMS[i] };
+  localStorage.setItem('adminUndoStack', JSON.stringify(adminUndoStack));
+
   const title = document.getElementById(`anews-${i}-title`).value.trim();
   const desc = document.getElementById(`anews-${i}-desc`).value.trim();
   const impact = document.getElementById(`anews-${i}-impact`).value.trim();
@@ -4685,7 +4784,7 @@ async function saveAdminNews(i) {
     NEWS_ITEMS[i] = { ...NEWS_ITEMS[i], title, desc, impact, date, cat, videoId,
       thumb: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` };
     renderNews();
-    showAdminMsg(msgEl, '✅ Сохранено!', 'ok');
+    showAdminMsg(msgEl, '✅ Сохранено!', 'ok', undoKey, undoAdminChange);
   }
 }
 
@@ -4724,13 +4823,18 @@ function renderAdminTips() {
         <label>Описание</label>
         <textarea class="admin-textarea" id="atip-${i}-desc">${tip.desc}</textarea>
       </div>
-      <div class="admin-msg" id="atip-msg-${i}"></div>
+      <div class="admin-msg${adminUndoStack[`tip-${i}`] ? 'show ok' : ''}" id="atip-msg-${i}">${adminUndoStack[`tip-${i}`] ? '✅ Сохранено!' : ''}</div>
       <button class="admin-save-btn" onclick="saveAdminTip(${i})">💾 Сохранить</button>
     </div>
   `).join('');
+  restoreUndoButtons();
 }
 
 async function saveAdminTip(i) {
+  const undoKey = `tip-${i}`;
+  adminUndoStack[undoKey] = { ...tipsData[i] };
+  localStorage.setItem('adminUndoStack', JSON.stringify(adminUndoStack));
+
   const icon = document.getElementById(`atip-${i}-icon`).value.trim();
   const title = document.getElementById(`atip-${i}-title`).value.trim();
   const desc = document.getElementById(`atip-${i}-desc`).value.trim();
@@ -4747,7 +4851,7 @@ async function saveAdminTip(i) {
   } else {
     tipsData[i] = { icon, title, desc };
     renderTipsSection();
-    showAdminMsg(msgEl, '✅ Сохранено!', 'ok');
+    showAdminMsg(msgEl, '✅ Сохранено!', 'ok', undoKey, undoAdminChange);
   }
 }
 
@@ -4764,10 +4868,125 @@ function renderTipsSection() {
 }
 
 // --- HELPERS ---
-function showAdminMsg(el, text, type) {
+function showAdminMsg(el, text, type, undoKey, undoFn) {
   el.textContent = text;
   el.className = 'admin-msg show ' + type;
-  setTimeout(() => { el.className = 'admin-msg'; }, 3000);
+  
+  // Добавляем кнопку отката если сохранение успешно
+  if (type === 'ok' && undoKey && undoFn) {
+    const undoBtn = document.createElement('button');
+    undoBtn.textContent = '↩ Убрать изменения';
+    undoBtn.style.cssText = 'margin-left:1rem;font-family:Rajdhani,sans-serif;font-size:0.75rem;letter-spacing:1px;text-transform:uppercase;background:transparent;border:1px solid var(--text-dim);color:var(--text-dim);padding:0.2rem 0.6rem;border-radius:2px;cursor:pointer;';
+    undoBtn.onclick = () => undoFn(undoKey, el);
+    el.appendChild(undoBtn);
+  }
+  
+  if (type !== 'ok') {
+    setTimeout(() => { el.className = 'admin-msg'; }, 3000);
+  }
+}
+
+async function undoAdminChange(undoKey, msgEl) {
+  const sb = getSupabase();
+  const prev = adminUndoStack[undoKey];
+  if (!prev) return;
+
+  try {
+    if (undoKey.startsWith('module-')) {
+      const [, role, i] = undoKey.split('-');
+      const idx = parseInt(i);
+      await sb.from('modules_content').upsert({
+        role, num: MODULES_BY_ROLE[role][idx].num,
+        title: prev.title, description: prev.desc,
+        video_id: prev.videoId, duration: prev.duration,
+        tags: prev.tags, updated_at: new Date().toISOString()
+      }, { onConflict: 'role,num' });
+      MODULES_BY_ROLE[role][idx] = { ...MODULES_BY_ROLE[role][idx], ...prev };
+      if (role === currentRole) renderModules();
+      renderAdminModuleCards();
+
+    } else if (undoKey.startsWith('quiz-')) {
+      const parts = undoKey.split('-');
+      const role = parts[1];
+      const idx = parseInt(parts[2]);
+      await sb.from('quiz_content').upsert({
+        role, question_index: idx, module_tag: prev.module,
+        question: prev.q, options: prev.options,
+        correct_index: prev.correct, feedback: prev.feedback,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'role,question_index' });
+      QUESTIONS_BY_ROLE[role][idx] = { ...prev };
+      if (role === currentRole) renderQuiz();
+      renderAdminQuizCards();
+
+    } else if (undoKey.startsWith('threat-')) {
+      const idx = parseInt(undoKey.split('-')[1]);
+      await sb.from('threats_content').upsert({
+        id: idx + 1, icon: prev.icon, title: prev.title,
+        description: prev.desc, level: prev.level,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+      threatsData[idx] = { ...prev };
+      renderThreatsSection();
+      renderAdminThreats();
+
+    } else if (undoKey.startsWith('news-')) {
+      const idx = parseInt(undoKey.split('-')[1]);
+      await sb.from('news_content').upsert({
+        id: idx + 1, title: prev.title, description: prev.desc,
+        impact: prev.impact, date: prev.date, category: prev.cat,
+        video_id: prev.videoId, updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+      NEWS_ITEMS[idx] = { ...prev };
+      renderNews();
+      renderAdminNews();
+
+    } else if (undoKey.startsWith('tip-')) {
+      const idx = parseInt(undoKey.split('-')[1]);
+      await sb.from('tips_content').upsert({
+        id: idx + 1, icon: prev.icon, title: prev.title,
+        description: prev.desc, updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+      tipsData[idx] = { ...prev };
+      renderTipsSection();
+      renderAdminTips();
+    }
+
+delete adminUndoStack[undoKey];
+localStorage.setItem('adminUndoStack', JSON.stringify(adminUndoStack));
+
+// Сохраняем ключ чтобы найти элемент после перерисовки
+const completedKey = undoKey;
+
+// Все render* вызовы идут выше этого блока, поэтому после них ищем элемент заново
+requestAnimationFrame(() => {
+  let freshEl = null;
+  if (completedKey.startsWith('module-')) {
+    const parts = completedKey.split('-');
+    freshEl = document.getElementById(`amod-msg-${parts[1]}-${parts[2]}`);
+  } else if (completedKey.startsWith('quiz-')) {
+    const parts = completedKey.split('-');
+    freshEl = document.getElementById(`aq-msg-${parts[1]}-${parts[2]}`);
+  } else if (completedKey.startsWith('threat-')) {
+    freshEl = document.getElementById(`athr-msg-${completedKey.split('-')[1]}`);
+  } else if (completedKey.startsWith('news-')) {
+    freshEl = document.getElementById(`anews-msg-${completedKey.split('-')[1]}`);
+  } else if (completedKey.startsWith('tip-')) {
+    freshEl = document.getElementById(`atip-msg-${completedKey.split('-')[1]}`);
+  }
+  if (freshEl) {
+    freshEl.innerHTML = '↩ Изменения убраны';
+    freshEl.className = 'admin-msg show ok';
+    setTimeout(() => { freshEl.className = 'admin-msg'; freshEl.innerHTML = ''; }, 3000);
+  }
+});
+
+
+  } catch(e) {
+    msgEl.textContent = '❌ Ошибка отката';
+    msgEl.className = 'admin-msg show err';
+    setTimeout(() => { msgEl.className = 'admin-msg'; }, 3000);
+  }
 }
 
 function escAttr(str) {
@@ -4788,6 +5007,37 @@ function saveAdminRoleSelection() {
   localStorage.setItem('adminSelectedRole', role);
 }
 
+function restoreUndoButtons() {
+  Object.keys(adminUndoStack).forEach(undoKey => {
+    let msgEl = null;
+
+    if (undoKey.startsWith('module-')) {
+      const parts = undoKey.split('-');
+      msgEl = document.getElementById(`amod-msg-${parts[1]}-${parts[2]}`);
+    } else if (undoKey.startsWith('quiz-')) {
+      const parts = undoKey.split('-');
+      msgEl = document.getElementById(`aq-msg-${parts[1]}-${parts[2]}`);
+    } else if (undoKey.startsWith('threat-')) {
+      msgEl = document.getElementById(`athr-msg-${undoKey.split('-')[1]}`);
+    } else if (undoKey.startsWith('news-')) {
+      msgEl = document.getElementById(`anews-msg-${undoKey.split('-')[1]}`);
+    } else if (undoKey.startsWith('tip-')) {
+      msgEl = document.getElementById(`atip-msg-${undoKey.split('-')[1]}`);
+    }
+
+    if (!msgEl) return;
+
+    msgEl.textContent = '✅ Сохранено!';
+    msgEl.className = 'admin-msg show ok';
+
+    const undoBtn = document.createElement('button');
+    undoBtn.textContent = '↩ Убрать изменения';
+    undoBtn.style.cssText = 'margin-left:1rem;font-family:Rajdhani,sans-serif;font-size:0.75rem;letter-spacing:1px;text-transform:uppercase;background:transparent;border:1px solid var(--text-dim);color:var(--text-dim);padding:0.2rem 0.6rem;border-radius:2px;cursor:pointer;';
+    undoBtn.onclick = () => undoAdminChange(undoKey, msgEl);
+    msgEl.appendChild(undoBtn);
+  });
+}
+
 function initAdminPanel() {
   document.getElementById('openAdminBtn').addEventListener('click', openAdminModal);
   document.getElementById('adminModalClose').addEventListener('click', closeAdminModal);
@@ -4799,6 +5049,24 @@ function initAdminPanel() {
       adminSwitchTab(this.dataset.tab);
     });
   });
+}
+
+function saveQuizState() {
+  if (!currentUser) return;
+  const state = {
+    role: currentRole,
+    current: quizCurrent,
+    score: quizScore,
+    answered: quizAnswered,
+    moduleScores: moduleScores,
+    answers: quizAnswers
+  };
+  localStorage.setItem(`quizState_${currentUser.id}`, JSON.stringify(state));
+}
+
+function clearQuizState() {
+  if (!currentUser) return;
+  localStorage.removeItem(`quizState_${currentUser.id}`);
 }
 
 // Показываем кнопку только для admin
