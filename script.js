@@ -3779,6 +3779,9 @@ function selectOption(idx) {
     document.getElementById("quizNext").textContent = "Посмотреть результат →";
   quizAnswers[quizCurrent] = { selected: idx, correct: q.correct };
   saveQuizState();
+  const resumeBanner = document.getElementById('quizResumeBanner');
+  if (resumeBanner) resumeBanner.remove();
+  saveQuizState();
 }
 
 function nextQuestion() {
@@ -3872,7 +3875,7 @@ async function showResult() {
   }
 
   const bd = document.getElementById("quizBreakdown");
-  const uniqueModules = [...new Set(quizQuestions.map((q) => q.module))];
+  const uniqueModules = [...new Set(quizQuestions.filter((q) => !q.practical).map((q) => q.module))];
   bd.innerHTML = uniqueModules
     .map((m) => {
       const s = moduleScores[m] || { correct: 0, total: 0 };
@@ -3885,6 +3888,23 @@ async function showResult() {
       </div>`;
     })
     .join("");
+
+  // Практические вопросы
+  const practicalQs = quizQuestions.map((q, i) => ({ q, i })).filter(({ q }) => q.practical);
+  if (practicalQs.length > 0) {
+    const practCorrect = practicalQs.filter(({ i }) => quizAnswers[i] && quizAnswers[i].selected === quizAnswers[i].correct).length;
+    const practTotal = practicalQs.length;
+    const practPct = Math.round((practCorrect / practTotal) * 100);
+    const practCls = practPct >= 80 ? "great" : practPct >= 50 ? "ok" : "bad";
+    bd.innerHTML += `
+      <div style="grid-column:1/-1;margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--border)">
+        <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.5rem">🧪 Практические сценарии</div>
+        <div class="breakdown-item" style="background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15)">
+          <div class="b-module">Все практические вопросы</div>
+          <div class="b-score ${practCls}">${practCorrect}/${practTotal} — ${practPct}%</div>
+        </div>
+      </div>`;
+  }
 
   document.getElementById("quizResult").style.display = "block";
 }
