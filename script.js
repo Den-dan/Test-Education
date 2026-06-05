@@ -3726,14 +3726,17 @@ function renderQuestion() {
     ? `<div class="quiz-practical-badge">🧪 Практический вопрос — смоделируйте свои действия</div>`
     : "";
 
+  // Создаём перемешанный порядок вариантов
+  const shuffledIndices = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+
   body.innerHTML =
     practicalBadge +
     `<div class="quiz-module-tag">${q.module}</div>` +
     `<div class="quiz-question">${q.q}</div>` +
     `<div class="quiz-options" id="quizOptions">` +
-    q.options
+    shuffledIndices
       .map(
-        (o, i) => `<button class="quiz-option" data-idx="${i}">${o}</button>`,
+        (origIdx) => `<button class="quiz-option" data-idx="${origIdx}">${q.options[origIdx]}</button>`,
       )
       .join("") +
     `</div>` +
@@ -3760,9 +3763,12 @@ function selectOption(idx) {
   const btns = document.querySelectorAll(".quiz-option");
   btns.forEach((b) => (b.disabled = true));
   if (idx === q.correct) {
-    btns[idx].classList.add("correct");
+    btns.forEach((b) => {
+      if (parseInt(b.dataset.idx) === idx) b.classList.add("correct");
+    });
   } else {
     btns.forEach((b) => {
+      if (parseInt(b.dataset.idx) === idx) b.classList.add("selected-wrong");
       if (parseInt(b.dataset.idx) === q.correct) b.classList.add("wrong");
     });
   }
