@@ -3222,14 +3222,26 @@ async function doMaoLogin() {
     return;
   }
   const sb = getSupabase();
-  const { error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) {
-    errEl.textContent =
-      error.message === "Invalid login credentials"
-        ? "Неверный email или пароль."
-        : error.message;
-    errEl.classList.add("show");
-  }
+  // Показываем анимацию входа
+errEl.classList.remove("show");
+const btn = document.getElementById("maoLoginBtn");
+btn.disabled = true;
+btn.innerHTML = '<span class="auth-loading">Входим...</span>';
+btn.style.color = "var(--success)";
+btn.style.borderColor = "var(--success)";
+
+const { error } = await sb.auth.signInWithPassword({ email, password });
+if (error) {
+  btn.disabled = false;
+  btn.innerHTML = "Войти";
+  btn.style.color = "";
+  btn.style.borderColor = "";
+  errEl.textContent =
+    error.message === "Invalid login credentials"
+      ? "Неверный email или пароль."
+      : error.message;
+  errEl.classList.add("show");
+}
 }
 
 async function doMaoRegister() {
@@ -3242,6 +3254,7 @@ async function doMaoRegister() {
   const okEl = document.getElementById("maoRegSuccess");
   errEl.classList.remove("show");
   okEl.classList.remove("show");
+
   if (!name || !email || !password) {
     errEl.textContent = "Заполните имя, email и пароль.";
     errEl.classList.add("show");
@@ -3252,13 +3265,25 @@ async function doMaoRegister() {
     errEl.classList.add("show");
     return;
   }
+
   const sb = getSupabase();
+  const btn = document.getElementById("maoRegBtn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="auth-loading">Регистрируемся...</span>';
+  btn.style.color = "var(--success)";
+  btn.style.borderColor = "var(--success)";
+
   const { data, error } = await sb.auth.signUp({
     email,
     password,
     options: { data: { full_name: name, role: role } },
   });
-if (error) {
+
+  if (error) {
+    btn.disabled = false;
+    btn.innerHTML = "Зарегистрироваться";
+    btn.style.color = "";
+    btn.style.borderColor = "";
     if (error.message.includes("already registered") || error.message.includes("User already registered")) {
       errEl.textContent = "Этот email уже зарегистрирован. Попробуйте войти.";
     } else {
@@ -3267,25 +3292,28 @@ if (error) {
     errEl.classList.add("show");
     return;
   }
+
   if (data.user) {
     try {
       await sb.from("profiles").upsert(
-        {
-          id: data.user.id,
-          email,
-          full_name: name,
-          role,
-          department: dept,
-        },
+        { id: data.user.id, email, full_name: name, role, department: dept },
         { onConflict: "id" },
       );
     } catch (e) {
       console.warn("profile upsert error:", e);
     }
   }
+
+  btn.innerHTML = '✅ Аккаунт создан!';
   okEl.textContent = "Аккаунт создан! Входим...";
   okEl.classList.add("show");
-  setTimeout(() => maoSwitchTab("login"), 1500);
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.innerHTML = "Зарегистрироваться";
+    btn.style.color = "";
+    btn.style.borderColor = "";
+    maoSwitchTab("login");
+  }, 1500);
 }
 
 // ============================================================
