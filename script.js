@@ -3199,16 +3199,24 @@ function hideMandatoryOverlay() {
 }
 
 function maoSwitchTab(tab) {
-  document
-    .getElementById("maoTabLogin")
-    .classList.toggle("active", tab === "login");
-  document
-    .getElementById("maoTabRegister")
-    .classList.toggle("active", tab === "register");
-  document.getElementById("maoFormLogin").style.display =
-    tab === "login" ? "flex" : "none";
-  document.getElementById("maoFormRegister").style.display =
-    tab === "register" ? "flex" : "none";
+  document.getElementById("maoTabLogin").classList.toggle("active", tab === "login");
+  document.getElementById("maoTabRegister").classList.toggle("active", tab === "register");
+  document.getElementById("maoFormLogin").style.display = tab === "login" ? "flex" : "none";
+  document.getElementById("maoFormRegister").style.display = tab === "register" ? "flex" : "none";
+
+  // Сбрасываем кнопки при переключении вкладок
+  const loginBtn = document.getElementById("maoLoginBtn");
+  const regBtn = document.getElementById("maoRegBtn");
+  if (loginBtn) {
+    loginBtn.disabled = false;
+    loginBtn.innerHTML = "Войти";
+    loginBtn.style.animation = '';
+  }
+  if (regBtn) {
+    regBtn.disabled = false;
+    regBtn.innerHTML = "Зарегистрироваться";
+    regBtn.style.animation = '';
+  }
 }
 
 async function doMaoLogin() {
@@ -3216,32 +3224,54 @@ async function doMaoLogin() {
   const password = document.getElementById("maoLoginPassword").value;
   const errEl = document.getElementById("maoLoginError");
   errEl.classList.remove("show");
+
   if (!email || !password) {
     errEl.textContent = "Заполните все поля.";
     errEl.classList.add("show");
     return;
   }
-  const sb = getSupabase();
-  // Показываем анимацию входа
-errEl.classList.remove("show");
-const btn = document.getElementById("maoLoginBtn");
-btn.disabled = true;
-btn.innerHTML = '<span class="auth-loading">Входим...</span>';
-btn.style.color = "var(--success)";
-btn.style.borderColor = "var(--success)";
 
-const { error } = await sb.auth.signInWithPassword({ email, password });
-if (error) {
+  const sb = getSupabase();
+  const btn = document.getElementById("maoLoginBtn");
+  btn.disabled = true;
+  btn.innerHTML = createAuthLoadingHTML('ВХОДИМ');
+  btn.style.animation = 'authGlow 1.5s ease-in-out infinite';
+
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+
+  // Сбрасываем кнопку в любом случае — при ошибке и при успехе
   btn.disabled = false;
   btn.innerHTML = "Войти";
-  btn.style.color = "";
-  btn.style.borderColor = "";
-  errEl.textContent =
-    error.message === "Invalid login credentials"
-      ? "Неверный email или пароль."
-      : error.message;
-  errEl.classList.add("show");
+  btn.style.animation = '';
+
+  if (error) {
+    errEl.textContent =
+      error.message === "Invalid login credentials"
+        ? "Неверный email или пароль."
+        : error.message;
+    errEl.classList.add("show");
+  }
 }
+
+function createAuthLoadingHTML(text) {
+  return `<span style="
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #ffffff;
+    text-shadow: 0 0 12px rgba(0,212,255,0.8);
+    font-family: Rajdhani, sans-serif;
+    letter-spacing: 2px;
+    font-size: 0.9rem;
+    font-weight: 700;
+  ">
+    ${text}
+    <span style="display:inline-flex;gap:4px;align-items:center">
+      <span style="width:5px;height:5px;border-radius:50%;background:#ffffff;display:inline-block;animation:authDot 1.2s ease-in-out infinite;animation-delay:0s"></span>
+      <span style="width:5px;height:5px;border-radius:50%;background:#ffffff;display:inline-block;animation:authDot 1.2s ease-in-out infinite;animation-delay:0.2s"></span>
+      <span style="width:5px;height:5px;border-radius:50%;background:#ffffff;display:inline-block;animation:authDot 1.2s ease-in-out infinite;animation-delay:0.4s"></span>
+    </span>
+  </span>`;
 }
 
 async function doMaoRegister() {
@@ -3269,7 +3299,8 @@ async function doMaoRegister() {
   const sb = getSupabase();
   const btn = document.getElementById("maoRegBtn");
   btn.disabled = true;
-  btn.innerHTML = '<span class="auth-loading">Регистрируемся...</span>';
+  btn.innerHTML = createAuthLoadingHTML('РЕГИСТРИРУЕМСЯ');
+btn.style.animation = 'authGlow 1.5s ease-in-out infinite';
   btn.style.color = "var(--success)";
   btn.style.borderColor = "var(--success)";
 
@@ -3284,6 +3315,7 @@ async function doMaoRegister() {
     btn.innerHTML = "Зарегистрироваться";
     btn.style.color = "";
     btn.style.borderColor = "";
+    btn.style.animation = '';
     if (error.message.includes("already registered") || error.message.includes("User already registered")) {
       errEl.textContent = "Этот email уже зарегистрирован. Попробуйте войти.";
     } else {
@@ -3312,6 +3344,7 @@ async function doMaoRegister() {
     btn.innerHTML = "Зарегистрироваться";
     btn.style.color = "";
     btn.style.borderColor = "";
+    btn.style.animation = '';
     maoSwitchTab("login");
   }, 1500);
 }
