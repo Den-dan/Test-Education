@@ -3827,6 +3827,8 @@ async function showResult() {
     }
   }
 
+  document.getElementById("quizResult").style.display = "block";
+
   let label, color;
   if (pct >= 85) {
     label = "🏆 Отличный результат! Вы хорошо владеете основами ИБ.";
