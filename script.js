@@ -2862,11 +2862,8 @@ document.addEventListener("DOMContentLoaded", function () {
     .getElementById("pmSavePassBtn")
     .addEventListener("click", pmSavePass);
 
-  renderNews();
-  // Рендерим модули и квиз по умолчанию (для employee)
-  renderModules();
-  renderQuiz();
   initAuth();
+  loadContentFromDB();
   initAdminPanel();
 });
 
@@ -3096,11 +3093,16 @@ async function afterLogin() {
   await loadProgress();
   await loadScoreHistory();
   // ИСПРАВЛЕНО: приоритет — профиль из базы, затем user_metadata
-  if (userProfile && userProfile.role) {
+  if (currentUser.email === 'admin@ibacademy.ru') {
+    currentRole = userProfile && userProfile.role && MODULES_BY_ROLE[userProfile.role]
+      ? userProfile.role
+      : "employee";
+    // Принудительно показываем модули для employee если роль admin (нет такого в MODULES_BY_ROLE)
+    if (currentRole === 'admin') currentRole = 'employee';
+  } else if (userProfile && userProfile.role) {
     currentRole = userProfile.role;
   } else if (currentUser.user_metadata && currentUser.user_metadata.role) {
     currentRole = currentUser.user_metadata.role;
-    // Сохраняем в профиль если его не было
     if (!userProfile) {
       await ensureProfile();
     }
@@ -3115,6 +3117,7 @@ async function afterLogin() {
   updateProgressBar();
   await checkCertificate();
   showRoleInfo();
+  await loadContentFromDB();
 }
 
 // Создаём профиль из user_metadata если его нет в БД
@@ -3425,18 +3428,14 @@ function renderQuestion() {
   document.getElementById("quizResult").style.display = "none";
 
   // Перемешиваем варианты ответов
-  const shuffled = q.options
-    .map((o, i) => ({ text: o, originalIdx: i }))
-    .sort(() => Math.random() - 0.5);
-
   const body = document.getElementById("quizBody");
   body.innerHTML =
     `<div class="quiz-module-tag">${q.module}</div>` +
     `<div class="quiz-question">${q.q}</div>` +
     `<div class="quiz-options" id="quizOptions">` +
-    shuffled
+    q.options
       .map(
-        (o) => `<button class="quiz-option" data-idx="${o.originalIdx}">${o.text}</button>`,
+        (o, i) => `<button class="quiz-option" data-idx="${i}">${o}</button>`,
       )
       .join("") +
     `</div>` +
@@ -4188,10 +4187,9 @@ async function pmSaveInfo() {
       pmShowMsg("pmInfoMsg", "Ошибка: " + error.message, "err");
       return;
     }
-    // ЗАМЕНИ НА:
     userProfile.full_name = name;
-    userProfile.role = role;
     userProfile.department = dept;
+    userProfile.role = role;
     currentRole = role;
     if (!MODULES_BY_ROLE[currentRole]) currentRole = "employee";
     watchedMods = new Set(); // сбрасываем просмотренные модули для новой роли
@@ -4357,7 +4355,7 @@ async function pmFillStats() {
 //  ADMIN PANEL
 // ============================================================
 
-let adminCurrentRole = 'employee';
+let adminCurrentRole = localStorage.getItem('adminSelectedRole') || 'employee';
 
 function openAdminModal() {
   const modal = document.getElementById('adminModal');
@@ -4399,12 +4397,12 @@ function renderAdminModules() {
   sec.innerHTML = `
     <div class="admin-role-select-wrap">
       <label>Должность:</label>
-      <select class="admin-select" id="adminModuleRole" onchange="renderAdminModuleCards()">
-        <option value="employee">Сотрудник</option>
-        <option value="manager">Менеджер</option>
-        <option value="it">IT-специалист</option>
-        <option value="hr">HR</option>
-        <option value="admin">Администратор</option>
+      <select class="admin-select" id="adminModuleRole" onchange="saveAdminRoleSelection(); renderAdminModuleCards()">
+        <option value="employee" ${adminCurrentRole==='employee'?'selected':''}>Сотрудник</option>
+        <option value="manager" ${adminCurrentRole==='manager'?'selected':''}>Менеджер</option>
+        <option value="it" ${adminCurrentRole==='it'?'selected':''}>IT-специалист</option>
+        <option value="hr" ${adminCurrentRole==='hr'?'selected':''}>HR</option>
+        <option value="admin" ${adminCurrentRole==='admin'?'selected':''}>Администратор</option>
       </select>
     </div>
     <div id="adminModuleCards"></div>
@@ -4473,12 +4471,12 @@ function renderAdminQuiz() {
   sec.innerHTML = `
     <div class="admin-role-select-wrap">
       <label>Должность:</label>
-      <select class="admin-select" id="adminQuizRole" onchange="renderAdminQuizCards()">
-        <option value="employee">Сотрудник</option>
-        <option value="manager">Менеджер</option>
-        <option value="it">IT-специалист</option>
-        <option value="hr">HR</option>
-        <option value="admin">Администратор</option>
+      <select class="admin-select" id="adminQuizRole" onchange="saveAdminRoleSelection(); renderAdminQuizCards()">
+        <option value="employee" ${adminCurrentRole==='employee'?'selected':''}>Сотрудник</option>
+        <option value="manager" ${adminCurrentRole==='manager'?'selected':''}>Менеджер</option>
+        <option value="it" ${adminCurrentRole==='it'?'selected':''}>IT-специалист</option>
+        <option value="hr" ${adminCurrentRole==='hr'?'selected':''}>HR</option>
+        <option value="admin" ${adminCurrentRole==='admin'?'selected':''}>Администратор</option>
       </select>
     </div>
     <div id="adminQuizCards"></div>
@@ -4773,10 +4771,23 @@ function showAdminMsg(el, text, type) {
 }
 
 function escAttr(str) {
-  return String(str || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 // --- INIT ADMIN ---
+function saveAdminRoleSelection() {
+  const moduleRole = document.getElementById('adminModuleRole');
+  const quizRole = document.getElementById('adminQuizRole');
+  const role = (moduleRole || quizRole).value;
+  adminCurrentRole = role;
+  localStorage.setItem('adminSelectedRole', role);
+}
+
 function initAdminPanel() {
   document.getElementById('openAdminBtn').addEventListener('click', openAdminModal);
   document.getElementById('adminModalClose').addEventListener('click', closeAdminModal);
@@ -4794,6 +4805,104 @@ function initAdminPanel() {
 function checkAdminAccess() {
   const btn = document.getElementById('openAdminBtn');
   if (!btn) return;
-  const isAdmin = userProfile && userProfile.role === 'admin';
+  const isAdmin = currentUser && currentUser.email === 'admin@ibacademy.ru';
   btn.style.display = isAdmin ? 'inline-block' : 'none';
+}
+
+// ============================================================
+//  LOAD CONTENT FROM DB ON PAGE START
+// ============================================================
+async function loadContentFromDB() {
+  const sb = getSupabase();
+
+  try {
+    // Модули
+    const { data: modsDB } = await sb.from('modules_content').select('*');
+    if (modsDB && modsDB.length > 0) {
+      modsDB.forEach(row => {
+        if (MODULES_BY_ROLE[row.role]) {
+          const idx = MODULES_BY_ROLE[row.role].findIndex(m => m.num === row.num);
+          if (idx !== -1) {
+            if (row.title)       MODULES_BY_ROLE[row.role][idx].title    = row.title;
+            if (row.description) MODULES_BY_ROLE[row.role][idx].desc     = row.description;
+            if (row.video_id)    MODULES_BY_ROLE[row.role][idx].videoId  = row.video_id;
+            if (row.duration)    MODULES_BY_ROLE[row.role][idx].duration = row.duration;
+          }
+        }
+      });
+    }
+
+    // Вопросы теста
+    const { data: quizDB } = await sb.from('quiz_content').select('*');
+    if (quizDB && quizDB.length > 0) {
+      quizDB.forEach(row => {
+        if (QUESTIONS_BY_ROLE[row.role] && QUESTIONS_BY_ROLE[row.role][row.question_index]) {
+          const q = QUESTIONS_BY_ROLE[row.role][row.question_index];
+          if (row.question)      q.q        = row.question;
+          if (row.options)       q.options  = row.options;
+          if (row.correct_index !== null) q.correct  = row.correct_index;
+          if (row.feedback)      q.feedback = row.feedback;
+        }
+      });
+    }
+
+    // Угрозы
+    const { data: threatsDB } = await sb.from('threats_content').select('*').order('id');
+    if (threatsDB && threatsDB.length > 0) {
+      const levelTextMap = {
+        'level-high': '● Высокий риск',
+        'level-med':  '● Средний риск',
+        'level-low':  '● Управляемый риск'
+      };
+      threatsDB.forEach((row, i) => {
+        if (threatsData[i]) {
+          if (row.icon)        threatsData[i].icon      = row.icon;
+          if (row.title)       threatsData[i].title     = row.title;
+          if (row.description) threatsData[i].desc      = row.description;
+          if (row.level)       threatsData[i].level     = row.level;
+          if (row.level)       threatsData[i].levelText = levelTextMap[row.level] || row.level;
+        }
+      });
+      renderThreatsSection();
+    }
+
+    // Новости
+    const { data: newsDB } = await sb.from('news_content').select('*').order('id');
+    if (newsDB && newsDB.length > 0) {
+      newsDB.forEach((row, i) => {
+        if (NEWS_ITEMS[i]) {
+          if (row.title)       NEWS_ITEMS[i].title   = row.title;
+          if (row.description) NEWS_ITEMS[i].desc    = row.description;
+          if (row.impact)      NEWS_ITEMS[i].impact  = row.impact;
+          if (row.date)        NEWS_ITEMS[i].date    = row.date;
+          if (row.category)    NEWS_ITEMS[i].cat     = row.category;
+          if (row.video_id) {
+            NEWS_ITEMS[i].videoId = row.video_id;
+            NEWS_ITEMS[i].thumb   = `https://img.youtube.com/vi/${row.video_id}/hqdefault.jpg`;
+          }
+        }
+      });
+    }
+
+    // Советы
+    const { data: tipsDB } = await sb.from('tips_content').select('*').order('id');
+    if (tipsDB && tipsDB.length > 0) {
+      tipsDB.forEach((row, i) => {
+        if (tipsData[i]) {
+          if (row.icon)        tipsData[i].icon  = row.icon;
+          if (row.title)       tipsData[i].title = row.title;
+          if (row.description) tipsData[i].desc  = row.description;
+        }
+      });
+      renderTipsSection();
+    }
+
+  } catch(e) {
+    console.warn('loadContentFromDB error:', e);
+  }
+
+  // Рендерим всё с актуальными данными
+  renderNews();
+  renderModules();
+  renderQuiz();
 }
