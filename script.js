@@ -3023,6 +3023,15 @@ document.addEventListener("DOMContentLoaded", function () {
     },
     { threshold: 0.08 },
   );
+  // Enter для квиза
+document.addEventListener("keydown", function(e) {
+  if (e.key !== "Enter") return;
+  const nav = document.getElementById("quizNav");
+  const nextBtn = document.getElementById("quizNext");
+  if (nav && nav.style.display !== "none" && nextBtn) {
+    nextBtn.click();
+  }
+});
   document
     .querySelectorAll(".fade-in.js-animate")
     .forEach((el) => observer.observe(el));
@@ -3043,6 +3052,20 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("maoRegPassword").addEventListener("keydown", (e) => {
     if (e.key === "Enter") doMaoRegister();
   });
+document.getElementById("maoRegName").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") doMaoRegister();
+  });
+document.getElementById("maoRegEmail").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") doMaoRegister();
+  });
+
+  document.getElementById("maoLoginPassword").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") doMaoLogin();
+    });
+
+  document.getElementById("maoLoginEmail").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") doMaoLogin();
+    });
 
   document.getElementById("logoutBtn").addEventListener("click", doLogout);
   document
