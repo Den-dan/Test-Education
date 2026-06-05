@@ -3891,6 +3891,50 @@ async function showResult() {
   document.getElementById("quizProgressLabel").textContent = "Тест завершён";
   document.getElementById("quizBody").innerHTML = "";
   document.getElementById("quizNav").style.display = "none";
+  // Показываем анимацию загрузки результата
+document.getElementById("quizBody").innerHTML = `
+  <div style="
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    gap: 2rem;
+  ">
+    <div style="position:relative;width:80px;height:80px">
+      <svg viewBox="0 0 80 80" style="width:80px;height:80px;animation:spinRing 1.5s linear infinite">
+        <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(0,212,255,0.15)" stroke-width="4"/>
+        <circle cx="40" cy="40" r="34" fill="none" stroke="var(--accent)" stroke-width="4"
+          stroke-dasharray="60 154" stroke-linecap="round"/>
+      </svg>
+      <div style="
+        position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+        font-size:1.6rem;animation:resultPulse 1.5s ease-in-out infinite;
+      ">⚙️</div>
+    </div>
+    <div style="text-align:center">
+      <div style="
+        font-family:Rajdhani,sans-serif;
+        font-size:0.8rem;
+        letter-spacing:3px;
+        text-transform:uppercase;
+        color:var(--accent);
+        animation:resultFade 1.5s ease-in-out infinite;
+      ">Анализируем результаты</div>
+      <div style="
+        font-size:0.75rem;
+        color:var(--text-dim);
+        margin-top:0.5rem;
+        letter-spacing:1px;
+      ">Подготовка отчёта по модулям...</div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;animation:authDot 1.2s ease-in-out infinite;animation-delay:0s;opacity:0.8"></span>
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;animation:authDot 1.2s ease-in-out infinite;animation-delay:0.2s;opacity:0.8"></span>
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;animation:authDot 1.2s ease-in-out infinite;animation-delay:0.4s;opacity:0.8"></span>
+    </div>
+  </div>
+`;
 
   const pct = Math.round((quizScore / quizQuestions.length) * 100);
   let savedPrev = previousScore;
@@ -3921,7 +3965,8 @@ async function showResult() {
     }
   }
 
-  document.getElementById("quizResult").style.display = "block";
+  document.getElementById("quizBody").innerHTML = "";
+document.getElementById("quizResult").style.display = "block";
 
   let label, color;
   if (pct >= 85) {
@@ -3996,13 +4041,13 @@ async function showResult() {
       <div style="grid-column:1/-1;margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--border)">
         <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.5rem">🧪 Практические сценарии</div>
         <div class="breakdown-item" style="background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15)">
-          <div class="b-module">Все практические вопросы</div>
+          <div class="b-module">Практические вопросы</div>
           <div class="b-score ${practCls}">${practCorrect}/${practTotal} — ${practPct}%</div>
         </div>
       </div>`;
   }
 
-  document.getElementById("quizResult").style.display = "block";
+
 }
 
 function restartQuiz() {
@@ -4383,7 +4428,17 @@ const isRolePassed = (role) => {
 
 async function doLogout() {
   const sb = getSupabase();
+  const btn = document.getElementById("logoutBtn");
+  
+  btn.disabled = true;
+  btn.innerHTML = createAuthLoadingHTML('ВЫХОДИМ');
+  btn.style.animation = 'authGlow 1.5s ease-in-out infinite';
+
   await sb.auth.signOut();
+
+  btn.disabled = false;
+  btn.innerHTML = "Выйти";
+  btn.style.animation = '';
 }
 
 document
