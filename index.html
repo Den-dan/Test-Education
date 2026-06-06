@@ -864,13 +864,308 @@ h3#/KquAr7Va9i% -->
           Организация процесса обучения сотрудников по вопросам ИБ
         </div>
       </div>
-      <div class="footer-credits">
-        <div>Разработчики проекта</div>
-        <strong>Утеев Даниэль &nbsp;·&nbsp; Афанасьев Артём</strong>
-        <div style="margin-top: 0.3rem; opacity: 0.5; font-size: 0.7rem">
-          Дипломная работа · 2026
-        </div>
-      </div>
+      <div class="footer-dev-section">
+  <div class="footer-dev-label">// разработчики проекта</div>
+  <div class="footer-dev-people">
+
+    <div class="footer-dev-person">
+      <svg width="80" height="80" viewBox="0 0 208 208" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Утеев Даниэль</title>
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0a1e3a"/>
+      <stop offset="100%" stop-color="#020810"/>
+    </radialGradient>
+    <radialGradient id="coreGlow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glowStrong">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="cardClip">
+      <rect x="2" y="2" width="196" height="196" rx="6"/>
+    </clipPath>
+  </defs>
+
+  <rect x="2" y="2" width="196" height="196" rx="6" fill="url(#bgGrad)" stroke="#378ADD" stroke-width="1.5"/>
+
+  <g clip-path="url(#cardClip)">
+    <rect x="2" y="2" width="196" height="196" rx="6" fill="url(#coreGlow)" opacity="0">
+      <animate attributeName="opacity" values="0;1;0" dur="4s" repeatCount="indefinite"/>
+    </rect>
+
+    <!-- Corner lines -->
+    <line x1="2" y1="50" x2="25" y2="50" stroke="#378ADD" stroke-width="1" opacity="0.6"/>
+    <line x1="175" y1="50" x2="198" y2="50" stroke="#378ADD" stroke-width="1" opacity="0.6"/>
+    <line x1="2" y1="150" x2="25" y2="150" stroke="#378ADD" stroke-width="1" opacity="0.6"/>
+    <line x1="175" y1="150" x2="198" y2="150" stroke="#378ADD" stroke-width="1" opacity="0.6"/>
+
+    <!-- Corner squares (blinking) -->
+    <rect x="2" y="2" width="14" height="14" fill="#378ADD" opacity="0.9">
+      <animate attributeName="opacity" values="0.9;0.3;0.9" dur="2s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="184" y="2" width="14" height="14" fill="#378ADD" opacity="0.9">
+      <animate attributeName="opacity" values="0.3;0.9;0.3" dur="2s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="2" y="184" width="14" height="14" fill="#378ADD" opacity="0.9">
+      <animate attributeName="opacity" values="0.9;0.3;0.9" dur="2.5s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="184" y="184" width="14" height="14" fill="#378ADD" opacity="0.9">
+      <animate attributeName="opacity" values="0.3;0.9;0.3" dur="2.5s" repeatCount="indefinite"/>
+    </rect>
+
+    <!-- Dashed border overlay -->
+    <rect x="2" y="2" width="196" height="196" rx="6" fill="none" stroke="#378ADD" stroke-width="0.5" stroke-dasharray="4 4" opacity="0.4"/>
+
+    <!-- Scan line -->
+    <rect x="10" y="96" width="180" height="8" fill="#00d4ff" opacity="0">
+      <animate attributeName="y" values="10;190;10" dur="3.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;0.07;0" dur="3.5s" repeatCount="indefinite"/>
+    </rect>
+
+    <!-- Face / hologram group -->
+    <g transform="translate(100,72)">
+      <ellipse cx="0" cy="0" rx="42" ry="42" fill="none" stroke="#378ADD" stroke-width="0.5" opacity="0.2">
+        <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="12s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="0" cy="0" rx="32" ry="32" fill="none" stroke="#00d4ff" stroke-width="0.5" stroke-dasharray="3 6" opacity="0.3">
+        <animateTransform attributeName="transform" type="rotate" from="360" to="0" dur="8s" repeatCount="indefinite"/>
+      </ellipse>
+
+      <circle cx="42" cy="0" r="3" fill="#00d4ff" filter="url(#glow)">
+        <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="12s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="-32" cy="0" r="2" fill="#378ADD" filter="url(#glow)">
+        <animateTransform attributeName="transform" type="rotate" from="360" to="0" dur="8s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="0" cy="32" r="2" fill="#0077ff" filter="url(#glow)">
+        <animateTransform attributeName="transform" type="rotate" from="120" to="480" dur="8s" repeatCount="indefinite"/>
+      </circle>
+
+      <!-- Triangle / shield -->
+      <polygon points="0,-38 33,19 -33,19" fill="#0C447C" stroke="#378ADD" stroke-width="1.5" opacity="0">
+        <animate attributeName="opacity" values="0;1;0" dur="0.05s" begin="0s" fill="freeze"/>
+      </polygon>
+      <polygon points="0,-38 33,19 -33,19" fill="#0C447C" stroke="#378ADD" stroke-width="1.5"/>
+      <polygon points="0,-28 24,14 -24,14" fill="#072d5a" stroke="#185FA5" stroke-width="0.8"/>
+      <line x1="-24" y1="14" x2="24" y2="14" stroke="#378ADD" stroke-width="0.5" opacity="0.5"/>
+
+      <!-- Eyes -->
+      <ellipse cx="-10" cy="-6" rx="5.5" ry="6.5" fill="#00d4ff" opacity="0.9">
+        <animate attributeName="opacity" values="0.9;0.4;0.9" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="ry" values="6.5;7.5;6.5" dur="3s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="10" cy="-6" rx="5.5" ry="6.5" fill="#00d4ff" opacity="0.9">
+        <animate attributeName="opacity" values="0.4;0.9;0.4" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="ry" values="6.5;7.5;6.5" dur="3s" begin="1.5s" repeatCount="indefinite"/>
+      </ellipse>
+      <rect x="-12" y="-14" width="10" height="2.5" fill="#378ADD" opacity="0.6"/>
+      <rect x="2" y="-14" width="10" height="2.5" fill="#378ADD" opacity="0.6"/>
+
+      <!-- Smile -->
+      <path d="M-10 0 Q0 5 10 0" stroke="#00d4ff" stroke-width="2" fill="none" stroke-linecap="round">
+        <animate attributeName="d" values="M-10 0 Q0 5 10 0;M-10 2 Q0 6 10 2;M-10 0 Q0 5 10 0" dur="2s" repeatCount="indefinite"/>
+      </path>
+
+      <!-- Pulse ring -->
+      <polygon points="0,-38 33,19 -33,19" fill="none" stroke="#00d4ff" stroke-width="1" opacity="0">
+        <animate attributeName="opacity" values="0;0.6;0" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="points" values="0,-38 33,19 -33,19;0,-44 38,22 -38,22;0,-38 33,19 -33,19" dur="2s" repeatCount="indefinite"/>
+      </polygon>
+    </g>
+
+    <!-- Info card -->
+    <rect x="20" y="120" width="160" height="64" rx="3" fill="#050d1a" stroke="#378ADD" stroke-width="0.8" opacity="0.8"/>
+    <rect x="20" y="120" width="160" height="14" rx="2" fill="#0C447C" opacity="0.9"/>
+
+    <!-- Animated text lines -->
+    <rect x="27" y="140" width="50" height="4" rx="1" fill="#378ADD" opacity="0.5">
+      <animate attributeName="width" values="50;70;40;60;50" dur="4s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="27" y="148" width="36" height="4" rx="1" fill="#378ADD" opacity="0.3">
+      <animate attributeName="width" values="36;50;30;45;36" dur="5s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="27" y="156" width="58" height="4" rx="1" fill="#378ADD" opacity="0.25">
+      <animate attributeName="width" values="58;40;65;50;58" dur="3.5s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="27" y="164" width="44" height="4" rx="1" fill="#378ADD" opacity="0.2">
+      <animate attributeName="width" values="44;60;35;50;44" dur="4.5s" repeatCount="indefinite"/>
+    </rect>
+
+    <!-- Status dots row 1 -->
+    <rect x="100" y="140" width="6" height="6" rx="1" fill="#00d4ff" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.2;0.8" dur="1.1s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="110" y="140" width="6" height="6" rx="1" fill="#00d4ff" opacity="0.5">
+      <animate attributeName="opacity" values="0.2;0.8;0.2" dur="0.9s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="120" y="140" width="6" height="6" rx="1" fill="#378ADD" opacity="0.4">
+      <animate attributeName="opacity" values="0.4;0.9;0.4" dur="1.3s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="130" y="140" width="6" height="6" rx="1" fill="#0077ff" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;0.1;0.8;0.6" dur="1.7s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="140" y="140" width="6" height="6" rx="1" fill="#00d4ff" opacity="0.3">
+      <animate attributeName="opacity" values="0.3;0.8;0.3" dur="1.5s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="150" y="140" width="6" height="6" rx="1" fill="#378ADD" opacity="0.7">
+      <animate attributeName="opacity" values="0.7;0.2;0.7" dur="0.8s" repeatCount="indefinite"/>
+    </rect>
+
+    <!-- Status dots row 2 -->
+    <rect x="100" y="150" width="6" height="6" rx="1" fill="#378ADD" opacity="0.3">
+      <animate attributeName="opacity" values="0.3;0.7;0.3" dur="1.2s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="110" y="150" width="6" height="6" rx="1" fill="#00d4ff" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;0.1;0.6" dur="1.6s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="120" y="150" width="6" height="6" rx="1" fill="#0077ff" opacity="0.4">
+      <animate attributeName="opacity" values="0.4;0.9;0.2;0.4" dur="1.0s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="130" y="150" width="6" height="6" rx="1" fill="#00d4ff" opacity="0.5">
+      <animate attributeName="opacity" values="0.5;0.2;0.8;0.5" dur="1.4s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="140" y="150" width="6" height="6" rx="1" fill="#378ADD" opacity="0.3">
+      <animate attributeName="opacity" values="0.3;0.7;0.3" dur="0.9s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="150" y="150" width="6" height="6" rx="1" fill="#00d4ff" opacity="0.5">
+      <animate attributeName="opacity" values="0.5;0.1;0.8;0.5" dur="1.1s" repeatCount="indefinite"/>
+    </rect>
+
+    <!-- Floating particles -->
+    <circle cx="50" cy="30" r="1.5" fill="#00d4ff" opacity="0">
+      <animate attributeName="cx" values="50;160;90;50" dur="7s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="30;80;20;30" dur="7s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;0.8;0;0.6;0" dur="7s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="150" cy="100" r="1" fill="#378ADD" opacity="0">
+      <animate attributeName="cx" values="150;40;120;150" dur="9s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="100;50;110;100" dur="9s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;0.6;0;0.8;0" dur="9s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="80" cy="15" r="1.5" fill="#0077ff" opacity="0">
+      <animate attributeName="cx" values="80;170;60;80" dur="11s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="15;60;100;15" dur="11s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;0.7;0;0.5;0" dur="11s" repeatCount="indefinite"/>
+    </circle>
+
+    <text x="100" y="133" text-anchor="middle" font-family="monospace" font-size="7" fill="#378ADD" opacity="0.9">UD-01 // CREATOR</text>
+
+    <!-- Outer glow pulse -->
+    <rect x="2" y="2" width="196" height="196" rx="6" fill="none" stroke="#00d4ff" stroke-width="1" opacity="0">
+      <animate attributeName="opacity" values="0;0.4;0;0.2;0" dur="5s" repeatCount="indefinite"/>
+      <animate attributeName="stroke-width" values="1;3;1" dur="5s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+</svg>
+      <div class="footer-dev-name">Утеев Даниэль</div>
+      <div class="footer-dev-role-lead">Создатель</div>
+    </div>
+
+    <div class="footer-dev-divider"></div>
+
+    <div class="footer-dev-person">
+      <svg width="62" height="62" viewBox="0 0 80 80" role="img">
+  <title>Афанасьев Артём</title>
+
+  <rect x="2" y="2" width="76" height="76" rx="4" fill="#081a05" stroke="#639922" stroke-width="1"/>
+  <rect x="2" y="2" width="76" height="76" rx="4" fill="none" stroke="#639922" stroke-width="0.5" stroke-dasharray="4 4" opacity="0.35"/>
+
+  <!-- Corner lines -->
+  <line x1="2" y1="20" x2="10" y2="20" stroke="#639922" stroke-width="0.8" opacity="0.5"/>
+  <line x1="70" y1="20" x2="78" y2="20" stroke="#639922" stroke-width="0.8" opacity="0.5"/>
+  <line x1="2" y1="60" x2="10" y2="60" stroke="#639922" stroke-width="0.8" opacity="0.5"/>
+  <line x1="70" y1="60" x2="78" y2="60" stroke="#639922" stroke-width="0.8" opacity="0.5"/>
+
+  <!-- Corner squares (медленное моргание) -->
+  <rect x="2" y="2" width="6" height="6" fill="#639922" opacity="0.7">
+    <animate attributeName="opacity" values="0.7;0.2;0.7" dur="3s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="72" y="2" width="6" height="6" fill="#639922" opacity="0.7">
+    <animate attributeName="opacity" values="0.2;0.7;0.2" dur="3s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="2" y="72" width="6" height="6" fill="#639922" opacity="0.7">
+    <animate attributeName="opacity" values="0.7;0.2;0.7" dur="3.5s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="72" y="72" width="6" height="6" fill="#639922" opacity="0.7">
+    <animate attributeName="opacity" values="0.2;0.7;0.2" dur="3.5s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- Shield -->
+  <polygon points="40,10 54,20 54,36 40,42 26,36 26,20" fill="#1a3d08" stroke="#639922" stroke-width="1"/>
+  <polygon points="40,15 50,23 50,33 40,38 30,33 30,23" fill="#0f2505" stroke="#3B6D11" stroke-width="0.5"/>
+  <line x1="30" y1="23" x2="50" y2="23" stroke="#639922" stroke-width="0.5" opacity="0.4"/>
+
+  <!-- Eyes (пульсация) -->
+  <ellipse cx="36" cy="28" rx="2" ry="2.5" fill="#97C459" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.4;0.9" dur="2.5s" repeatCount="indefinite"/>
+  </ellipse>
+  <ellipse cx="44" cy="28" rx="2" ry="2.5" fill="#97C459" opacity="0.9">
+    <animate attributeName="opacity" values="0.4;0.9;0.4" dur="2.5s" repeatCount="indefinite"/>
+  </ellipse>
+
+  <!-- Brows -->
+  <rect x="35" y="24.5" width="4" height="1" fill="#639922" opacity="0.5"/>
+  <rect x="41" y="24.5" width="4" height="1" fill="#639922" opacity="0.5"/>
+
+  <!-- Smile -->
+  <path d="M36 32 Q40 35 44 32" stroke="#97C459" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+
+  <!-- Info card -->
+  <rect x="12" y="46" width="56" height="24" rx="2" fill="#081a05" stroke="#639922" stroke-width="0.5" opacity="0.6"/>
+  <rect x="12" y="46" width="56" height="5" rx="1" fill="#1a3d08" opacity="0.8"/>
+
+  <!-- Text lines -->
+  <rect x="16" y="54" width="14" height="2" rx="1" fill="#639922" opacity="0.4"/>
+  <rect x="16" y="58" width="20" height="2" rx="1" fill="#639922" opacity="0.25"/>
+  <rect x="16" y="62" width="10" height="2" rx="1" fill="#639922" opacity="0.2"/>
+
+  <!-- Status dots (медленное мерцание) -->
+  <rect x="38" y="54" width="2" height="2" rx="0.5" fill="#97C459" opacity="0.7">
+    <animate attributeName="opacity" values="0.7;0.2;0.7" dur="2s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="42" y="54" width="2" height="2" rx="0.5" fill="#639922" opacity="0.5">
+    <animate attributeName="opacity" values="0.2;0.5;0.2" dur="2.4s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="46" y="54" width="2" height="2" rx="0.5" fill="#97C459" opacity="0.4">
+    <animate attributeName="opacity" values="0.4;0.1;0.4" dur="1.8s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="50" y="54" width="2" height="2" rx="0.5" fill="#639922" opacity="0.3">
+    <animate attributeName="opacity" values="0.1;0.3;0.1" dur="2.2s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="38" y="58" width="2" height="2" rx="0.5" fill="#639922" opacity="0.4">
+    <animate attributeName="opacity" values="0.4;0.1;0.4" dur="2.6s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="42" y="58" width="2" height="2" rx="0.5" fill="#97C459" opacity="0.5">
+    <animate attributeName="opacity" values="0.2;0.5;0.2" dur="1.9s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="46" y="58" width="2" height="2" rx="0.5" fill="#639922" opacity="0.3">
+    <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2.3s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- Outer glow pulse (очень тихий) -->
+  <rect x="2" y="2" width="76" height="76" rx="4" fill="none" stroke="#639922" stroke-width="1" opacity="0">
+    <animate attributeName="opacity" values="0;0.3;0" dur="4s" repeatCount="indefinite"/>
+  </rect>
+
+  <text x="40" y="49" text-anchor="middle" font-family="monospace" font-size="4" fill="#639922" opacity="0.8">AA-02 // ASSIST</text>
+</svg>
+      <div class="footer-dev-name">Афанасьев Артём</div>
+      <div class="footer-dev-role-assist">Ассистент</div>
+    </div>
+
+  </div>
+  <div class="footer-dev-year">
+    Дипломная работа <span class="footer-dev-dot"></span> 2026
+  </div>
+</div>
     </footer>
 
     <script
