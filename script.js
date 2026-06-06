@@ -6495,6 +6495,12 @@ async function revertChangeById(historyId) {
     console.warn('revertChangeById: запись не найдена в кэше', historyId);
     return;
   }
+  const btn = document.querySelector(`button[onclick="revertChangeById('${historyId}')"]`);
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = createAuthLoadingHTML('ОТКАТ');
+    btn.style.animation = 'authGlow 1.5s ease-in-out infinite';
+  }
   await revertChange(historyId, row.before_data, row.content_type, row.content_key);
 }
 
@@ -6608,7 +6614,7 @@ async function renderAdminHistory() {
 
   const isReload = container.children.length > 0;
   if (!isReload) {
-    container.innerHTML = `<div style="color:var(--text-dim);font-size:0.85rem">Загружаем журнал...</div>`;
+    container.innerHTML = `<div style="color:var(--text-dim);font-size:0.85rem;display:flex;align-items:center;gap:8px;">${createAuthLoadingHTML('ЗАГРУЖАЕМ ЖУРНАЛ')}</div>`;
   }
 
   const { data, error } = await sb
@@ -6733,6 +6739,12 @@ async function renderAdminHistory() {
 
 // Откат всей сессии
 async function revertSession(sessionId) {
+  const btn = document.querySelector(`button[onclick="revertSession('${sessionId}')"]`);
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = createAuthLoadingHTML('ОТКАТ');
+    btn.style.animation = 'authGlow 1.5s ease-in-out infinite';
+  }
   const sb = getSupabase();
   const { data } = await sb
     .from('content_history')
