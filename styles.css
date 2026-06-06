@@ -3385,3 +3385,78 @@ body.light .hero-badge {
     border-color: rgba(0, 55, 160, 0.7);
   }
 }
+
+/* ADMIN LOCAL PREVIEW BUTTON */
+.admin-preview-btn {
+  font-family: "Rajdhani", sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 0.6rem 1.5rem;
+  border-radius: 3px;
+  cursor: pointer;
+  border: none;
+  background: linear-gradient(135deg, #b8860b, #ffa500);
+  color: #000;
+  transition: all 0.2s;
+  align-self: flex-end;
+  margin-top: 0.25rem;
+}
+.admin-preview-btn:hover {
+  box-shadow: 0 0 20px rgba(255, 165, 0, 0.5);
+}
+.admin-preview-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: rgba(255, 165, 0, 0.08);
+  border: 1px solid rgba(255, 165, 0, 0.4);
+  border-radius: 4px;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  color: #ffa500;
+  font-family: "Rajdhani", sans-serif;
+  letter-spacing: 0.5px;
+}
+.admin-preview-banner-btns {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.admin-preview-publish-btn {
+  font-family: "Rajdhani", sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 0.3rem 0.9rem;
+  border-radius: 2px;
+  cursor: pointer;
+  border: none;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  color: #000;
+  transition: all 0.2s;
+}
+.admin-preview-publish-btn:hover {
+  box-shadow: 0 0 16px rgba(0, 212, 255, 0.4);
+}
+.admin-preview-discard-btn {
+  font-family: "Rajdhani", sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 0.3rem 0.9rem;
+  border-radius: 2px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid rgba(255, 165, 0, 0.5);
+  color: #ffa500;
+  transition: all 0.2s;
+}
+.admin-preview-discard-btn:hover {
+  background: rgba(255, 165, 0, 0.1);
+}
