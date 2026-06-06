@@ -3400,26 +3400,38 @@ body.light .hero-badge {
   background: linear-gradient(135deg, #b8860b, #ffa500);
   color: #000;
   transition: all 0.2s;
-  align-self: flex-end;
   margin-top: 0.25rem;
+  margin-right: 0.5rem;
 }
 .admin-preview-btn:hover {
   box-shadow: 0 0 20px rgba(255, 165, 0, 0.5);
 }
+.admin-card > div:last-of-type,
+.admin-card .admin-btn-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
 .admin-preview-banner {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  z-index: 99;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  background: rgba(255, 165, 0, 0.08);
-  border: 1px solid rgba(255, 165, 0, 0.4);
-  border-radius: 4px;
-  padding: 0.75rem 1.25rem;
-  margin-bottom: 1rem;
+  background: rgba(20, 14, 0, 0.97);
+  border-bottom: 1px solid rgba(255, 165, 0, 0.5);
+  padding: 0.6rem 2rem;
   font-size: 0.85rem;
   color: #ffa500;
   font-family: "Rajdhani", sans-serif;
   letter-spacing: 0.5px;
+  backdrop-filter: blur(12px);
 }
 .admin-preview-banner-btns {
   display: flex;
