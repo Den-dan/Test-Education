@@ -27,9 +27,40 @@ body.light {
 }
 
 body.light::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
   background-image:
-    linear-gradient(rgba(0, 60, 160, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 60, 160, 0.07) 1px, transparent 1px);
+    radial-gradient(circle, rgba(0, 60, 160, 0.28) 1.5px, transparent 1.5px),
+    radial-gradient(circle, rgba(0, 60, 160, 0.16) 1.5px, transparent 1.5px);
+  background-size: 32px 32px, 80px 80px;
+  background-position: 0 0, 16px 16px;
+}
+
+body.light::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 15% 20%, rgba(0, 80, 200, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 75%, rgba(0, 150, 180, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(100, 180, 255, 0.04) 0%, transparent 70%);
+  animation: lightAurora 12s ease-in-out infinite alternate;
+}
+
+@keyframes lightAurora {
+  from {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.03);
+  }
 }
 
 body.light nav {
@@ -292,11 +323,13 @@ body.light .section-label {
 }
 
 body.light .nav-logo {
-  color: var(--accent);
+  color: #0a0a0a;
+  text-shadow: none;
+  font-weight: 700;
 }
 
 body.light .nav-logo span {
-  color: var(--text);
+  color: #0a0a0a;
 }
 
 body.light .nav-links a {
@@ -307,9 +340,7 @@ body.light .nav-links a:hover {
   color: var(--accent);
 }
 
-body.light .footer-logo {
-  color: var(--accent);
-}
+
 
 body.light footer {
   background: #e8eef5;
@@ -381,17 +412,7 @@ body {
   overflow-x: hidden;
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events: none;
-  z-index: 0;
-}
+
 
 #star-canvas {
   position: fixed;
@@ -1829,46 +1850,8 @@ nav {
   z-index: 1;
   overflow: hidden;
 }
-.hero-orb {
-  position: absolute;
-  width: 600px;
-  height: 600px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(0, 119, 255, 0.12) 0%,
-    transparent 70%
-  );
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  animation: pulse 4s ease-in-out infinite;
-}
-.hero-orb2 {
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(0, 212, 255, 0.08) 0%,
-    transparent 70%
-  );
-  top: 30%;
-  right: 15%;
-  animation: pulse 6s ease-in-out infinite reverse;
-}
-@keyframes pulse {
-  0%,
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.8;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.15);
-    opacity: 1;
-  }
-}
+
+
 /* === SHIELD LOGO ANIMATIONS === */
 @keyframes shieldFloat {
   0%,
@@ -3348,4 +3331,57 @@ button[onclick*="togglePasswordVisibility"] {
 }
 button[onclick*="togglePasswordVisibility"]:hover {
   color: var(--accent);
+}
+
+body.light #star-canvas {
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+body.light {
+  background: #f0f4f8;
+  body.light .shield-icon svg path:nth-child(1) {
+  stroke: #0055cc;
+}
+
+body.light .shield-icon svg path:nth-child(2) {
+  stroke: #0055cc;
+}
+
+body.light .shield-icon svg path:nth-child(3) {
+  stroke: #007a50;
+}
+
+body.light .shield-icon {
+  animation: shieldFloat 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 16px rgba(0, 60, 160, 0.3));
+}
+}
+
+body.light .nav-logo,
+body.light .nav-logo span,
+body.light .footer-logo {
+  color: #0a0a0a !important;
+}
+
+body.light .pco-footer-logo {
+  color: #0044aa;
+}
+
+body.light .hero-badge {
+  border: 2px solid rgba(0, 55, 160, 0.5);
+  color: #0044aa;
+  background: rgba(0, 55, 160, 0.06);
+  animation: badgeGlowLight 3s ease-in-out infinite;
+}
+
+@keyframes badgeGlowLight {
+  0%, 100% {
+    box-shadow: 0 0 6px rgba(0, 55, 160, 0.15);
+    border-color: rgba(0, 55, 160, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(0, 55, 160, 0.35);
+    border-color: rgba(0, 55, 160, 0.7);
+  }
 }
