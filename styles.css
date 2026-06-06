@@ -3227,3 +3227,15 @@ h1 .line2 {
 body.light h1 .line2 {
   color: #0d1a2b;
 }
+
+/* Кнопка показа пароля */
+button[onclick*="togglePasswordVisibility"] {
+  color: var(--text-dim);
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+button[onclick*="togglePasswordVisibility"]:hover {
+  color: var(--accent);
+}
