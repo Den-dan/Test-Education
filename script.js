@@ -7314,9 +7314,8 @@ function togglePasswordVisibility(inputId, btn) {
   const canvas = document.getElementById("star-canvas");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
-  let W,
-    H,
-    stars = [];
+  let W, H, stars = [];
+  let meteors = [];
 
   function resize() {
     W = canvas.width = window.innerWidth;
@@ -7339,23 +7338,188 @@ function togglePasswordVisibility(inputId, btn) {
     }
   }
 
+  // Цветовые темы для метеоритов
+  const METEOR_PALETTES = [
+    { head: "255,255,255", core: "180,220,255", tail: "100,180,255" },   // ледяной голубой
+    { head: "255,255,255", core: "200,160,255", tail: "120,80,255" },    // фиолетовый
+    { head: "255,255,255", core: "160,240,200", tail: "0,212,255" },     // акцентный циан
+    { head: "255,255,255", core: "255,220,150", tail: "255,140,60" },    // золотисто-оранжевый
+    { head: "255,255,255", core: "255,180,200", tail: "220,60,120" },    // розово-малиновый
+  ];
+
+  function spawnMeteor() {
+    const palette = METEOR_PALETTES[Math.floor(Math.random() * METEOR_PALETTES.length)];
+    const angle = Math.PI / 4 + (Math.random() - 0.5) * 0.35;
+    const len = Math.random() * 340 + 180;
+    const speed = Math.random() * 8 + 7;
+    const width = Math.random() * 1.5 + 1.2;
+
+    // Часть метеоритов начинается за экраном сверху-справа
+    const startX = Math.random() < 0.7
+      ? Math.random() * W * 1.3
+      : W * 0.6 + Math.random() * W * 0.6;
+    const startY = Math.random() < 0.7
+      ? Math.random() * H * 0.25
+      : -len * 0.3;
+
+    meteors.push({
+      x: startX,
+      y: startY,
+      len,
+      speed,
+      angle,
+      life: 1,
+      palette,
+      width,
+      // Параметры пульсации яркости
+      pulsePhase: Math.random() * Math.PI * 2,
+      pulseSpeed: Math.random() * 0.3 + 0.1,
+      // Частицы-искры
+      sparks: [],
+    });
+  }
+
+  function scheduleMeteor() {
+    // Базовый интервал 700–2200 мс → значительно чаще чем было (1500–5000 мс)
+    const delay = 700 + Math.random() * 1500;
+    setTimeout(() => {
+      if (!document.body.classList.contains("light")) {
+        spawnMeteor();
+        // 45% шанс второго метеорита с небольшой задержкой
+        if (Math.random() < 0.45) {
+          setTimeout(spawnMeteor, 200 + Math.random() * 600);
+        }
+        // 15% шанс третьего — редкий «ливень»
+        if (Math.random() < 0.15) {
+          setTimeout(spawnMeteor, 600 + Math.random() * 800);
+        }
+      }
+      scheduleMeteor();
+    }, delay);
+  }
+
+  function drawMeteor(m) {
+    const p = m.palette;
+    const pulse = 0.85 + 0.15 * Math.sin(m.pulsePhase);
+    const alpha = m.life * pulse;
+
+    const dx = Math.cos(m.angle) * m.len;
+    const dy = Math.sin(m.angle) * m.len;
+
+    // Основной хвост — трёхслойный
+    // Слой 1: широкое свечение
+    const glow = ctx.createLinearGradient(m.x, m.y, m.x - dx, m.y - dy);
+    glow.addColorStop(0, `rgba(${p.head}, ${alpha * 0.25})`);
+    glow.addColorStop(0.25, `rgba(${p.core}, ${alpha * 0.12})`);
+    glow.addColorStop(1, `rgba(${p.tail}, 0)`);
+    ctx.beginPath();
+    ctx.moveTo(m.x, m.y);
+    ctx.lineTo(m.x - dx, m.y - dy);
+    ctx.strokeStyle = glow;
+    ctx.lineWidth = m.width * 5;
+    ctx.lineCap = "round";
+    ctx.stroke();
+
+    // Слой 2: средний яркий хвост
+    const mid = ctx.createLinearGradient(m.x, m.y, m.x - dx * 0.7, m.y - dy * 0.7);
+    mid.addColorStop(0, `rgba(${p.head}, ${alpha * 0.8})`);
+    mid.addColorStop(0.4, `rgba(${p.core}, ${alpha * 0.4})`);
+    mid.addColorStop(1, `rgba(${p.tail}, 0)`);
+    ctx.beginPath();
+    ctx.moveTo(m.x, m.y);
+    ctx.lineTo(m.x - dx * 0.7, m.y - dy * 0.7);
+    ctx.strokeStyle = mid;
+    ctx.lineWidth = m.width * 2;
+    ctx.stroke();
+
+    // Слой 3: яркое ядро хвоста
+    const core = ctx.createLinearGradient(m.x, m.y, m.x - dx * 0.35, m.y - dy * 0.35);
+    core.addColorStop(0, `rgba(255,255,255, ${alpha * 0.95})`);
+    core.addColorStop(0.5, `rgba(${p.core}, ${alpha * 0.6})`);
+    core.addColorStop(1, `rgba(${p.tail}, 0)`);
+    ctx.beginPath();
+    ctx.moveTo(m.x, m.y);
+    ctx.lineTo(m.x - dx * 0.35, m.y - dy * 0.35);
+    ctx.strokeStyle = core;
+    ctx.lineWidth = m.width * 0.7;
+    ctx.stroke();
+
+    // Голова: яркая точка + ореол
+    // Ореол
+    const haloR = m.width * 4;
+    const halo = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, haloR);
+    halo.addColorStop(0, `rgba(${p.head}, ${alpha * 0.9})`);
+    halo.addColorStop(0.5, `rgba(${p.core}, ${alpha * 0.4})`);
+    halo.addColorStop(1, `rgba(${p.tail}, 0)`);
+    ctx.beginPath();
+    ctx.arc(m.x, m.y, haloR, 0, Math.PI * 2);
+    ctx.fillStyle = halo;
+    ctx.fill();
+
+    // Яркое ядро головы
+    ctx.beginPath();
+    ctx.arc(m.x, m.y, m.width * 1.2, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255, ${alpha})`;
+    ctx.fill();
+
+    // Искры при рождении (life > 0.85)
+    if (m.life > 0.85 && Math.random() < 0.4) {
+      m.sparks.push({
+        x: m.x,
+        y: m.y,
+        vx: (Math.random() - 0.5) * 3,
+        vy: (Math.random() - 0.5) * 3,
+        life: 0.6 + Math.random() * 0.4,
+        color: p.core,
+      });
+    }
+
+    // Рисуем и обновляем искры
+    m.sparks = m.sparks.filter(s => s.life > 0);
+    m.sparks.forEach(s => {
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, 1, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${s.color}, ${s.life * alpha})`;
+      ctx.fill();
+      s.x += s.vx;
+      s.y += s.vy;
+      s.life -= 0.04;
+    });
+  }
+
   function draw() {
     ctx.clearRect(0, 0, W, H);
+
+    // Звёзды
+    const isLight = document.body.classList.contains("light");
     stars.forEach((s) => {
       s.phase += s.speed;
       const a = s.baseA * (0.5 + 0.5 * Math.sin(s.phase));
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      const isLight = document.body.classList.contains('light');
-ctx.fillStyle = isLight
-  ? `rgba(30, 80, 180, ${a * 0.35})`
-  : `rgba(210, 235, 255, ${a})`;
+      ctx.fillStyle = isLight
+        ? `rgba(30, 80, 180, ${a * 0.35})`
+        : `rgba(210, 235, 255, ${a})`;
       ctx.fill();
     });
+
+    // Метеориты — только тёмная тема
+    if (!isLight) {
+      meteors = meteors.filter((m) => m.life > 0);
+      meteors.forEach((m) => {
+        drawMeteor(m);
+        m.x += Math.cos(m.angle) * m.speed;
+        m.y += Math.sin(m.angle) * m.speed;
+        m.life -= 0.016;
+        m.pulsePhase += m.pulseSpeed;
+      });
+    }
+
     requestAnimationFrame(draw);
   }
 
   window.addEventListener("resize", resize);
   resize();
+  scheduleMeteor();
   draw();
 })();
