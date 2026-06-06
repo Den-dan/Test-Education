@@ -5695,14 +5695,33 @@ async function pmFillStats() {
         const modPct = Math.round((mods / 6) * 100);
 
         let badgeClass = "empty";
-        let badgeText = "Не проходили";
-        if (passed) {
-          badgeClass = "passed";
-          badgeText = "✓ Пройдено";
-        } else if (hasAny) {
-          badgeClass = "progress";
-          badgeText = "В процессе";
-        }
+let badgeText = "Не проходили";
+
+if (score !== null && score >= 65) {
+  badgeClass = "passed";
+  let stars = "";
+  const svgStar = (on, delay = 0) => {
+  if (on) return `<svg width="28" height="28" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle;animation:starPulse 2.5s ease-in-out ${delay}s infinite alternate" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="none" stroke="#00d4ff" stroke-width="1.5" stroke-linejoin="round"/>
+    <polygon points="12,7 13.6,10.5 17.5,11.1 14.75,13.7 15.4,17.6 12,15.8 8.6,17.6 9.25,13.7 6.5,11.1 10.4,10.5" fill="#00d4ff" opacity="0.5"/>
+  </svg>`;
+  return `<svg width="28" height="28" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle;opacity:0.18" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="none" stroke="#00d4ff" stroke-width="1.5" stroke-linejoin="round"/>
+  </svg>`;
+};
+
+if (score >= 100) {
+  stars = svgStar(true,0) + svgStar(true,0.4) + svgStar(true,0.8);
+} else if (score >= 85) {
+  stars = svgStar(true,0) + svgStar(true,0.4) + svgStar(false);
+} else {
+  stars = svgStar(true,0) + svgStar(false) + svgStar(false);
+}
+badgeText = stars;
+} else if (hasAny) {
+  badgeClass = "progress";
+  badgeText = "В процессе";
+}
 
         let fillColor = "var(--text-dim)";
         if (passed) fillColor = "var(--success)";
@@ -5716,11 +5735,11 @@ async function pmFillStats() {
         }
 
         return `<div class="pm-role-stat-row" style="${isCurrent ? "border-color:rgba(0,212,255,0.35);" : ""}">
-              <div class="pm-role-stat-header">
+              <div class="pm-role-stat-header" style="align-items:center;min-height:2.2rem">
                 <div class="pm-role-stat-name">
                   ${isCurrent ? "→ " : ""}${ROLE_LABELS[role]}
                 </div>
-                <span class="pm-role-stat-badge ${badgeClass}">${badgeText}</span>
+                <span class="pm-role-stat-badge ${badgeClass}" style="${score !== null && score >= 65 ? 'font-size:1rem;letter-spacing:2px;padding:0.2rem 0.6rem;background:transparent;border-color:transparent;' : ''}">${badgeText}</span>
               </div>
               <div class="pm-role-stat-scores">
                 <span>Модули: ${mods}/6</span>
@@ -5750,10 +5769,13 @@ async function pmFillStats() {
         const cls = r.percentage >= 65 ? "var(--success)" : "var(--danger)";
         const roleLabel = ROLE_LABELS[r.role] || r.role || "—";
         return `<div class="pm-history-item">
-              <span>${date}</span>
-              <span class="pm-history-role">${roleLabel}</span>
-              <span class="pm-history-score" style="color:${cls}">${r.score}/${r.total} · ${r.percentage}%</span>
-            </div>`;
+  <span>${date}</span>
+  <span class="pm-history-role" style="text-align:center">${roleLabel}</span>
+  <span class="pm-history-score" style="text-align:right">
+    <span style="color:var(--text-dim);font-size:0.85rem">${r.score}/${r.total}</span>
+    <span style="color:${cls};font-weight:700;margin-left:0.4rem">${r.percentage}%</span>
+  </span>
+</div>`;
       })
       .join("");
   } catch (e) {
