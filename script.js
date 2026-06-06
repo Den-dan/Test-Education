@@ -7380,18 +7380,23 @@ function togglePasswordVisibility(inputId, btn) {
   }
 
   let pageVisible = true;
+  let meteorTimer = null;
 
   document.addEventListener('visibilitychange', () => {
-    pageVisible = !document.hidden;
-    if (!document.hidden) {
-      // При возврате сбрасываем все накопившиеся метеориты
+    if (document.hidden) {
+      pageVisible = false;
+      clearTimeout(meteorTimer);
+      meteorTimer = null;
+    } else {
+      pageVisible = true;
       meteors = [];
+      scheduleMeteor();
     }
   });
 
   function scheduleMeteor() {
     const delay = 700 + Math.random() * 1500;
-    setTimeout(() => {
+    meteorTimer = setTimeout(() => {
       if (!document.body.classList.contains("light") && pageVisible) {
         spawnMeteor();
         if (Math.random() < 0.45) {
