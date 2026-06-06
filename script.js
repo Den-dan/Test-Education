@@ -4214,11 +4214,14 @@ async function afterLogin() {
   // Создаём новую сессию для администратора при каждом входе
   // Применить локальный предпросмотр если он есть
   if (currentUser && currentUser.email === "admin@ibacademy.ru") {
-    if (hasAdminPreview()) {
-      applyAdminPreviewToUI();
-      updateAdminPreviewBanner();
-    }
+  currentSessionId = null;
+  localStorage.removeItem("adminSessionId");
+  getSessionId();
+  if (hasAdminPreview()) {
+    applyAdminPreviewToUI();
+    updateAdminPreviewBanner();
   }
+}
 }
 
 // Создаём профиль из user_metadata если его нет в БД
@@ -5245,8 +5248,10 @@ async function doLogout() {
     quizQuestions = [];
     moduleScores = {};
     Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith("quizState_")) localStorage.removeItem(key);
-    });
+  if (key.startsWith("quizState_")) localStorage.removeItem(key);
+});
+localStorage.removeItem("adminSessionId");
+currentSessionId = null;
     closeVideoModal();
     closeProfileModal();
     updateNavUI();
@@ -5848,8 +5853,10 @@ function renderAdminModuleCards() {
         <input class="admin-input" id="amod-${role}-${i}-dur" value="${escAttr(mod.duration)}" placeholder="например: 11:12">
       </div>
       <div class="admin-msg ${adminUndoStack[`module-${role}-${i}`] ? "show ok" : ""}" id="amod-msg-${role}-${i}">${adminUndoStack[`module-${role}-${i}`] ? "✅ Сохранено!" : ""}</div>
-      <button class="admin-preview-btn" onclick="previewAdminModule('${role}', ${i})">👁 Сохранить у себя</button>
-      <button class="admin-save-btn" onclick="saveAdminModule('${role}', ${i})">💾 Сохранить для всех</button>
+      <div style="display:flex;flex-direction:row;align-items:center;gap:0.5rem;align-self:flex-end;margin-top:0.25rem;flex-wrap:wrap">
+  <button class="admin-preview-btn" onclick="previewAdminModule('${role}', ${i})">👁 Сохранить у себя</button>
+  <button class="admin-save-btn" style="margin-top:0" onclick="saveAdminModule('${role}', ${i})">💾 Сохранить для всех</button>
+</div>
     </div>
   `,
     )
@@ -5961,8 +5968,10 @@ function renderAdminQuizCards() {
         <textarea class="admin-textarea" id="aq-${role}-${i}-fb">${q.feedback}</textarea>
       </div>
       <div class="admin-msg${adminUndoStack[`quiz-${role}-${i}`] ? "show ok" : ""}" id="aq-msg-${role}-${i}">${adminUndoStack[`quiz-${role}-${i}`] ? "✅ Сохранено!" : ""}</div>
-      <button class="admin-preview-btn" onclick="previewAdminQuiz('${role}', ${i})">👁 Сохранить у себя</button>
-      <button class="admin-save-btn" onclick="saveAdminQuiz('${role}', ${i})">💾 Сохранить для всех</button>
+      <div style="display:flex;flex-direction:row;align-items:center;gap:0.5rem;align-self:flex-end;margin-top:0.25rem;flex-wrap:wrap">
+  <button class="admin-preview-btn" onclick="previewAdminQuiz('${role}', ${i})">👁 Сохранить у себя</button>
+<button class="admin-save-btn" style="margin-top:0" onclick="saveAdminQuiz('${role}', ${i})">💾 Сохранить для всех</button>
+</div>
     </div>
   `,
     )
@@ -6094,8 +6103,10 @@ function renderAdminThreats() {
         </select>
       </div>
       <div class="admin-msg${adminUndoStack[`threat-${i}`] ? "show ok" : ""}" id="athr-msg-${i}">${adminUndoStack[`threat-${i}`] ? "✅ Сохранено!" : ""}</div>
-      <button class="admin-preview-btn" onclick="previewAdminThreat(${i})">👁 Сохранить у себя</button>
-      <button class="admin-save-btn" onclick="saveAdminThreat(${i})">💾 Сохранить для всех</button>
+      <div style="display:flex;flex-direction:row;align-items:center;gap:0.5rem;align-self:flex-end;margin-top:0.25rem;flex-wrap:wrap">
+  <button class="admin-preview-btn" onclick="previewAdminThreat(${i})">👁 Сохранить у себя</button>
+<button class="admin-save-btn" style="margin-top:0" onclick="saveAdminThreat(${i})">💾 Сохранить для всех</button>
+</div>
     </div>
   `,
     )
@@ -6195,8 +6206,10 @@ function renderAdminNews() {
         <input class="admin-input" id="anews-${i}-vid" value="${escAttr(item.videoId)}" placeholder="например: PKHH_gvJ_hA">
       </div>
       <div class="admin-msg${adminUndoStack[`news-${i}`] ? "show ok" : ""}" id="anews-msg-${i}">${adminUndoStack[`news-${i}`] ? "✅ Сохранено!" : ""}</div>
-      <button class="admin-preview-btn" onclick="previewAdminNews(${i})">👁 Сохранить у себя</button>
-      <button class="admin-save-btn" onclick="saveAdminNews(${i})">💾 Сохранить для всех</button>
+      <div style="display:flex;flex-direction:row;align-items:center;gap:0.5rem;align-self:flex-end;margin-top:0.25rem;flex-wrap:wrap">
+  <button class="admin-preview-btn" onclick="previewAdminNews(${i})">👁 Сохранить у себя</button>
+<button class="admin-save-btn" style="margin-top:0" onclick="saveAdminNews(${i})">💾 Сохранить для всех</button>
+</div>
     </div>
   `,
   ).join("");
@@ -6334,8 +6347,10 @@ function renderAdminTips() {
         <textarea class="admin-textarea" id="atip-${i}-desc">${tip.desc}</textarea>
       </div>
       <div class="admin-msg${adminUndoStack[`tip-${i}`] ? "show ok" : ""}" id="atip-msg-${i}">${adminUndoStack[`tip-${i}`] ? "✅ Сохранено!" : ""}</div>
-      <button class="admin-preview-btn" onclick="previewAdminTip(${i})">👁 Сохранить у себя</button>
-      <button class="admin-save-btn" onclick="saveAdminTip(${i})">💾 Сохранить для всех</button>
+      <div style="display:flex;flex-direction:row;align-items:center;gap:0.5rem;align-self:flex-end;margin-top:0.25rem;flex-wrap:wrap">
+  <button class="admin-preview-btn" onclick="previewAdminTip(${i})">👁 Сохранить у себя</button>
+<button class="admin-save-btn" style="margin-top:0" onclick="saveAdminTip(${i})">💾 Сохранить для всех</button>
+</div>
     </div>
   `,
     )
@@ -6896,8 +6911,8 @@ function updateAdminPreviewBanner() {
     </div>
   `;
   // Вставляем сразу после nav
-  const nav = document.querySelector("nav");
-  if (nav) nav.insertAdjacentElement("afterend", banner);
+  document.body.appendChild(banner);
+document.body.classList.add('has-preview-banner');
 }
 
 // Сбросить все локальные изменения и перезагрузить контент из БД
@@ -6905,6 +6920,7 @@ async function discardAdminPreview() {
   clearAdminPreview();
   const banner = document.getElementById("adminPreviewBanner");
   if (banner) banner.remove();
+  document.body.classList.remove('has-preview-banner');
   await loadContentFromDB();
   renderModules();
   renderQuiz();
@@ -6925,9 +6941,14 @@ async function publishAdminPreview() {
 
   try {
     if (preview.module) {
-      for (const [key, data] of Object.entries(preview.module)) {
-        const [role, num] = key.split(":");
-        const mod = MODULES_BY_ROLE[role]?.find((m) => m.num === parseInt(num));
+  const { data: dbMods } = await sb.from("modules_content").select("*");
+  for (const [key, data] of Object.entries(preview.module)) {
+    const [role, num] = key.split(":");
+    const dbRow = (dbMods || []).find(r => r.role === role && r.num === parseInt(num));
+    const mod = MODULES_BY_ROLE[role]?.find((m) => m.num === parseInt(num));
+    const beforeData = dbRow
+      ? { title: dbRow.title, desc: dbRow.description, videoId: dbRow.video_id, duration: dbRow.duration, tags: dbRow.tags }
+      : (mod ? { title: mod.title, desc: mod.desc, videoId: mod.videoId, duration: mod.duration, tags: mod.tags } : data);
         const { error } = await sb.from("modules_content").upsert(
           {
             role, num: parseInt(num),
@@ -6940,14 +6961,26 @@ async function publishAdminPreview() {
           },
           { onConflict: "role,num" }
         );
-        if (error) errors.push(error.message);
-        else await recordChange("module", key, data, data);
+        if (error) { errors.push(error.message); continue; }
+        await recordChange("module", key, beforeData, data);
+        if (mod) {
+          mod.title = data.title;
+          mod.desc = data.desc;
+          mod.videoId = data.videoId;
+          mod.duration = data.duration;
+        }
       }
     }
 
     if (preview.quiz) {
-      for (const [key, data] of Object.entries(preview.quiz)) {
-        const [role, i] = key.split(":");
+  const { data: dbQuiz } = await sb.from("quiz_content").select("*");
+  for (const [key, data] of Object.entries(preview.quiz)) {
+    const [role, i] = key.split(":");
+    const dbRow = (dbQuiz || []).find(r => r.role === role && r.question_index === parseInt(i));
+    const q = QUESTIONS_BY_ROLE[role]?.[parseInt(i)];
+    const beforeData = dbRow
+      ? { q: dbRow.question, options: dbRow.options, correct: dbRow.correct_index, feedback: dbRow.feedback, module: dbRow.module_tag }
+      : (q ? { q: q.q, options: [...q.options], correct: q.correct, feedback: q.feedback, module: q.module } : data);
         const { error } = await sb.from("quiz_content").upsert(
           {
             role, question_index: parseInt(i),
@@ -6960,13 +6993,20 @@ async function publishAdminPreview() {
           },
           { onConflict: "role,question_index" }
         );
-        if (error) errors.push(error.message);
+        if (error) { errors.push(error.message); continue; }
+        await recordChange("quiz", key, beforeData, data);
+        if (q) Object.assign(q, data);
       }
     }
 
     if (preview.threat) {
-      for (const [key, data] of Object.entries(preview.threat)) {
-        const idx = parseInt(key);
+  const { data: dbThreats } = await sb.from("threats_content").select("*").order("id");
+  for (const [key, data] of Object.entries(preview.threat)) {
+    const idx = parseInt(key);
+    const dbRow = (dbThreats || [])[idx];
+    const beforeData = dbRow
+      ? { icon: dbRow.icon, title: dbRow.title, desc: dbRow.description, level: dbRow.level, levelText: threatsData[idx]?.levelText }
+      : (threatsData[idx] ? { ...threatsData[idx] } : data);
         const { error } = await sb.from("threats_content").upsert(
           {
             id: idx + 1, icon: data.icon, title: data.title,
@@ -6975,13 +7015,21 @@ async function publishAdminPreview() {
           },
           { onConflict: "id" }
         );
-        if (error) errors.push(error.message);
+        if (error) { errors.push(error.message); continue; }
+        await recordChange("threat", key, beforeData, data);
+        threatsData[idx] = { ...data };
       }
+      renderThreatsSection();
     }
 
     if (preview.news) {
-      for (const [key, data] of Object.entries(preview.news)) {
-        const idx = parseInt(key);
+  const { data: dbNews } = await sb.from("news_content").select("*").order("id");
+  for (const [key, data] of Object.entries(preview.news)) {
+    const idx = parseInt(key);
+    const dbRow = (dbNews || [])[idx];
+    const beforeData = dbRow
+      ? { title: dbRow.title, desc: dbRow.description, impact: dbRow.impact, date: dbRow.date, cat: dbRow.category, videoId: dbRow.video_id }
+      : (NEWS_ITEMS[idx] ? { title: NEWS_ITEMS[idx].title, desc: NEWS_ITEMS[idx].desc, impact: NEWS_ITEMS[idx].impact, date: NEWS_ITEMS[idx].date, cat: NEWS_ITEMS[idx].cat, videoId: NEWS_ITEMS[idx].videoId } : data);
         const { error } = await sb.from("news_content").upsert(
           {
             id: idx + 1, title: data.title, description: data.desc,
@@ -6990,13 +7038,22 @@ async function publishAdminPreview() {
           },
           { onConflict: "id" }
         );
-        if (error) errors.push(error.message);
+        if (error) { errors.push(error.message); continue; }
+        await recordChange("news", key, beforeData, data);
+        Object.assign(NEWS_ITEMS[idx], data);
+        if (data.videoId) NEWS_ITEMS[idx].thumb = `https://img.youtube.com/vi/${data.videoId}/hqdefault.jpg`;
       }
+      renderNews();
     }
 
     if (preview.tip) {
+      const { data: dbTips } = await sb.from("tips_content").select("*").order("id");
       for (const [key, data] of Object.entries(preview.tip)) {
         const idx = parseInt(key);
+        const dbRow = (dbTips || [])[idx];
+        const beforeData = dbRow
+          ? { icon: dbRow.icon, title: dbRow.title, desc: dbRow.description }
+          : (tipsData[idx] ? { ...tipsData[idx] } : data);
         const { error } = await sb.from("tips_content").upsert(
           {
             id: idx + 1, icon: data.icon, title: data.title,
@@ -7004,8 +7061,11 @@ async function publishAdminPreview() {
           },
           { onConflict: "id" }
         );
-        if (error) errors.push(error.message);
+        if (error) { errors.push(error.message); continue; }
+        await recordChange("tip", key, beforeData, data);
+        tipsData[idx] = { ...data };
       }
+      renderTipsSection();
     }
   } catch (e) {
     errors.push(e.message);
@@ -7013,9 +7073,9 @@ async function publishAdminPreview() {
 
   if (errors.length === 0) {
     clearAdminPreview();
+    document.body.classList.remove("has-preview-banner");
     const banner = document.getElementById("adminPreviewBanner");
     if (banner) banner.remove();
-    // Показываем flash-уведомление
     showPublishFlash("✅ Опубликовано для всех пользователей!");
   } else {
     if (btn) {
@@ -7030,7 +7090,7 @@ async function publishAdminPreview() {
 function showPublishFlash(msg, isError = false) {
   const flash = document.createElement("div");
   flash.style.cssText = `
-    position:fixed;top:80px;left:50%;transform:translateX(-50%);
+    position:fixed;top:5rem;right:2rem;
     z-index:9999;padding:0.75rem 2rem;border-radius:4px;
     font-family:Rajdhani,sans-serif;font-size:0.9rem;font-weight:700;
     letter-spacing:1.5px;text-transform:uppercase;
@@ -7084,11 +7144,7 @@ async function recordChange(contentType, contentKey, beforeData, afterData) {
 }
 
 async function revertChangeById(historyId) {
-  const row = historyCache[historyId];
-  if (!row) {
-    console.warn("revertChangeById: запись не найдена в кэше", historyId);
-    return;
-  }
+  const sb = getSupabase();
   const btn = document.querySelector(
     `button[onclick="revertChangeById('${historyId}')"]`,
   );
@@ -7097,12 +7153,25 @@ async function revertChangeById(historyId) {
     btn.innerHTML = createAuthLoadingHTML("ОТКАТ");
     btn.style.animation = "authGlow 1.5s ease-in-out infinite";
   }
-  await revertChange(
-    historyId,
-    row.before_data,
-    row.content_type,
-    row.content_key,
-  );
+
+  // Всегда загружаем свежие данные из БД
+  const { data: row, error } = await sb
+    .from("content_history")
+    .select("*")
+    .eq("id", historyId)
+    .single();
+
+  if (error || !row) {
+    console.warn("revertChangeById: не удалось загрузить запись", historyId, error);
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = "↩ Откат";
+      btn.style.animation = "";
+    }
+    return;
+  }
+
+  await revertChange(historyId, row.before_data, row.content_type, row.content_key);
 }
 
 // Откат одного конкретного изменения
@@ -7157,9 +7226,15 @@ async function applyContentData(contentType, contentKey, data) {
       },
       { onConflict: "role,num" },
     );
-    const idx = MODULES_BY_ROLE[role].findIndex((m) => m.num === parseInt(num));
-    if (idx !== -1) Object.assign(MODULES_BY_ROLE[role][idx], data);
+    const idx = MODULES_BY_ROLE[role]?.findIndex((m) => m.num === parseInt(num));
+    if (idx !== -1 && idx !== undefined) {
+      if (data.title) MODULES_BY_ROLE[role][idx].title = data.title;
+      if (data.desc) MODULES_BY_ROLE[role][idx].desc = data.desc;
+      if (data.videoId) MODULES_BY_ROLE[role][idx].videoId = data.videoId;
+      if (data.duration) MODULES_BY_ROLE[role][idx].duration = data.duration;
+    }
     if (role === currentRole) renderModules();
+
   } else if (contentType === "quiz") {
     const [role, i] = contentKey.split(":");
     await sb.from("quiz_content").upsert(
@@ -7175,10 +7250,24 @@ async function applyContentData(contentType, contentKey, data) {
       },
       { onConflict: "role,question_index" },
     );
-    Object.assign(QUESTIONS_BY_ROLE[role][parseInt(i)], data);
+    if (QUESTIONS_BY_ROLE[role]?.[parseInt(i)]) {
+      Object.assign(QUESTIONS_BY_ROLE[role][parseInt(i)], {
+        q: data.q,
+        options: data.options,
+        correct: data.correct,
+        feedback: data.feedback,
+        module: data.module,
+      });
+    }
     if (role === currentRole) renderQuiz();
+
   } else if (contentType === "threat") {
     const idx = parseInt(contentKey);
+    const levelTextMap = {
+      "level-high": "● Высокий риск",
+      "level-med": "● Средний риск",
+      "level-low": "● Управляемый риск",
+    };
     await sb.from("threats_content").upsert(
       {
         id: idx + 1,
@@ -7190,8 +7279,15 @@ async function applyContentData(contentType, contentKey, data) {
       },
       { onConflict: "id" },
     );
-    threatsData[idx] = { ...data };
+    threatsData[idx] = {
+      icon: data.icon,
+      title: data.title,
+      desc: data.desc,
+      level: data.level,
+      levelText: levelTextMap[data.level] || data.levelText || data.level,
+    };
     renderThreatsSection();
+
   } else if (contentType === "news") {
     const idx = parseInt(contentKey);
     await sb.from("news_content").upsert(
@@ -7207,8 +7303,18 @@ async function applyContentData(contentType, contentKey, data) {
       },
       { onConflict: "id" },
     );
-    Object.assign(NEWS_ITEMS[idx], data);
+    NEWS_ITEMS[idx] = {
+      ...NEWS_ITEMS[idx],
+      title: data.title,
+      desc: data.desc,
+      impact: data.impact,
+      date: data.date,
+      cat: data.cat,
+      videoId: data.videoId,
+      thumb: `https://img.youtube.com/vi/${data.videoId}/hqdefault.jpg`,
+    };
     renderNews();
+
   } else if (contentType === "tip") {
     const idx = parseInt(contentKey);
     await sb.from("tips_content").upsert(
@@ -7221,7 +7327,11 @@ async function applyContentData(contentType, contentKey, data) {
       },
       { onConflict: "id" },
     );
-    tipsData[idx] = { ...data };
+    tipsData[idx] = {
+      icon: data.icon,
+      title: data.title,
+      desc: data.desc,
+    };
     renderTipsSection();
   }
 }
@@ -7357,11 +7467,21 @@ async function renderAdminHistory() {
               border:1px solid var(--border);padding:0.1rem 0.4rem;border-radius:2px;
             ">${rows.length} изм.</span>
           </div>
-          <button onclick="revertSession('${sessionId}')" style="
-            background:transparent;border:1px solid var(--danger);color:var(--danger);
-            font-family:Rajdhani,sans-serif;font-size:0.7rem;letter-spacing:1px;
-            text-transform:uppercase;padding:0.3rem 0.8rem;border-radius:2px;cursor:pointer;
-          ">↩ Откатить всю сессию</button>
+          ${(() => {
+            const allReverted = rows.every(r => r.note && (r.note.startsWith("REVERTED") || r.note.startsWith("REVERT of")));
+            return allReverted
+              ? `<button disabled style="
+                  background:transparent;border:1px solid var(--border);color:var(--text-dim);
+                  font-family:Rajdhani,sans-serif;font-size:0.7rem;letter-spacing:1px;
+                  text-transform:uppercase;padding:0.3rem 0.8rem;border-radius:2px;cursor:not-allowed;
+                  opacity:0.4;
+                ">↩ Уже откатано</button>`
+              : `<button onclick="revertSession('${sessionId}')" style="
+                  background:transparent;border:1px solid var(--danger);color:var(--danger);
+                  font-family:Rajdhani,sans-serif;font-size:0.7rem;letter-spacing:1px;
+                  text-transform:uppercase;padding:0.3rem 0.8rem;border-radius:2px;cursor:pointer;
+                ">↩ Откатить всю сессию</button>`;
+          })()}
         </div>
         ${rowsHTML}
       </div>
@@ -7406,33 +7526,49 @@ async function revertSession(sessionId) {
 // Показывает разницу между было и стало
 async function showDiff(historyId) {
   const sb = getSupabase();
-  const { data } = await sb
+
+  // Всегда загружаем свежие данные из БД
+  const { data, error } = await sb
     .from("content_history")
     .select("*")
     .eq("id", historyId)
     .single();
-  if (!data) return;
 
-  const before = data.before_data;
-  const after = data.after_data;
+  if (error || !data) {
+    alert("Не удалось загрузить данные изменения");
+    return;
+  }
 
-  const diffLines = Object.keys(after)
+  const before = data.before_data || {};
+  const after = data.after_data || {};
+
+  // Собираем все ключи из обоих объектов
+  const allKeys = new Set([...Object.keys(before), ...Object.keys(after)]);
+
+  const diffLines = [...allKeys]
     .map((key) => {
-      const b = JSON.stringify(before[key] || "");
-      const a = JSON.stringify(after[key] || "");
+      const b = JSON.stringify(before[key] ?? "");
+      const a = JSON.stringify(after[key] ?? "");
       if (b === a) return null;
+
+      const bVal = before[key] !== undefined
+        ? (Array.isArray(before[key]) ? before[key].join(" | ") : String(before[key]))
+        : "(отсутствует)";
+      const aVal = after[key] !== undefined
+        ? (Array.isArray(after[key]) ? after[key].join(" | ") : String(after[key]))
+        : "(отсутствует)";
+
       return `
-      <div style="margin-bottom:0.75rem">
-        <div style="font-family:Rajdhani,sans-serif;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.3rem">${key}</div>
-        <div style="background:rgba(255,59,92,0.08);border-left:3px solid var(--danger);padding:0.4rem 0.75rem;font-size:0.8rem;color:var(--danger);margin-bottom:0.2rem;word-break:break-word">− ${before[key] || "(пусто)"}</div>
-        <div style="background:rgba(0,229,160,0.08);border-left:3px solid var(--success);padding:0.4rem 0.75rem;font-size:0.8rem;color:var(--success);word-break:break-word">+ ${after[key] || "(пусто)"}</div>
-      </div>
-    `;
+        <div style="margin-bottom:0.75rem">
+          <div style="font-family:Rajdhani,sans-serif;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.3rem">${key}</div>
+          <div style="background:rgba(255,59,92,0.08);border-left:3px solid var(--danger);padding:0.4rem 0.75rem;font-size:0.8rem;color:var(--danger);margin-bottom:0.2rem;word-break:break-word;white-space:pre-wrap">− ${bVal}</div>
+          <div style="background:rgba(0,229,160,0.08);border-left:3px solid var(--success);padding:0.4rem 0.75rem;font-size:0.8rem;color:var(--success);word-break:break-word;white-space:pre-wrap">+ ${aVal}</div>
+        </div>
+      `;
     })
     .filter(Boolean)
     .join("");
 
-  // Простой оверлей для diff
   const existing = document.getElementById("diffOverlay");
   if (existing) existing.remove();
 
@@ -7448,12 +7584,15 @@ async function showDiff(historyId) {
       background:var(--surface);border:1px solid var(--border);border-radius:6px;
       width:100%;max-width:600px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;
     ">
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;border-bottom:1px solid var(--border)">
-        <div style="font-family:Rajdhani,sans-serif;font-size:1rem;font-weight:700;color:#fff">Что изменилось</div>
-        <button onclick="document.getElementById('diffOverlay').remove()" style="background:none;border:none;color:var(--text-dim);font-size:1.4rem;cursor:pointer">✕</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;border-bottom:1px solid var(--border);flex-shrink:0">
+        <div>
+          <div style="font-family:Rajdhani,sans-serif;font-size:1rem;font-weight:700;color:#fff">Что изменилось</div>
+          <div style="font-size:0.72rem;color:var(--text-dim);margin-top:0.2rem">${data.content_type} · ${data.content_key} · ${new Date(data.changed_at).toLocaleString("ru-RU")}</div>
+        </div>
+        <button onclick="document.getElementById('diffOverlay').remove()" style="background:none;border:none;color:var(--text-dim);font-size:1.4rem;cursor:pointer;flex-shrink:0">✕</button>
       </div>
-      <div style="padding:1.5rem;overflow-y:auto">
-        ${diffLines || '<div style="color:var(--text-dim)">Изменений не найдено</div>'}
+      <div style="padding:1.5rem;overflow-y:auto;flex:1">
+        ${diffLines || '<div style="color:var(--text-dim);font-size:0.85rem">Изменений между версиями не обнаружено</div>'}
       </div>
     </div>
   `;
