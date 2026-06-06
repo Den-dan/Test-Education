@@ -7379,19 +7379,26 @@ function togglePasswordVisibility(inputId, btn) {
     });
   }
 
+  let pageVisible = true;
+
+  document.addEventListener('visibilitychange', () => {
+    pageVisible = !document.hidden;
+    if (!document.hidden) {
+      // При возврате сбрасываем все накопившиеся метеориты
+      meteors = [];
+    }
+  });
+
   function scheduleMeteor() {
-    // Базовый интервал 700–2200 мс → значительно чаще чем было (1500–5000 мс)
     const delay = 700 + Math.random() * 1500;
     setTimeout(() => {
-      if (!document.body.classList.contains("light")) {
+      if (!document.body.classList.contains("light") && pageVisible) {
         spawnMeteor();
-        // 45% шанс второго метеорита с небольшой задержкой
         if (Math.random() < 0.45) {
-          setTimeout(spawnMeteor, 200 + Math.random() * 600);
+          setTimeout(() => { if (pageVisible) spawnMeteor(); }, 200 + Math.random() * 600);
         }
-        // 15% шанс третьего — редкий «ливень»
         if (Math.random() < 0.15) {
-          setTimeout(spawnMeteor, 600 + Math.random() * 800);
+          setTimeout(() => { if (pageVisible) spawnMeteor(); }, 600 + Math.random() * 800);
         }
       }
       scheduleMeteor();
