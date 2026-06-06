@@ -3704,17 +3704,35 @@ let quizAnswers = [];
 function toggleTheme() {
   const isLight = document.body.classList.toggle("light");
   document.getElementById("themeIcon").textContent = isLight ? "☽" : "✦";
-  document.getElementById("themeLabel").textContent = isLight
-    ? "Тёмная"
-    : "Светлая";
+  document.getElementById("themeLabel").textContent = isLight ? "Тёмная" : "Светлая";
   localStorage.setItem("ib-theme", isLight ? "light" : "dark");
+  updateShieldTheme(isLight);
+}
+
+function updateShieldTheme(isLight) {
+  const shield = document.querySelector(".shield-icon");
+  if (!shield) return;
+  const paths = shield.querySelectorAll("svg path");
+  if (isLight) {
+    shield.style.animation = "shieldFloat 3s ease-in-out infinite";
+    shield.style.filter = "drop-shadow(0 0 14px rgba(0, 60, 160, 0.35))";
+    if (paths[0]) paths[0].setAttribute("stroke", "#0055cc");
+    if (paths[1]) paths[1].setAttribute("stroke", "#0055cc");
+    if (paths[2]) paths[2].setAttribute("stroke", "#007a50");
+  } else {
+    shield.style.animation = "shieldFloat 3s ease-in-out infinite, shieldGlow 3s ease-in-out infinite";
+    shield.style.filter = "drop-shadow(0 0 10px rgba(0, 55, 160, 0.25))";
+    if (paths[0]) paths[0].setAttribute("stroke", "#00d4ff");
+    if (paths[1]) paths[1].setAttribute("stroke", "#00d4ff");
+    if (paths[2]) paths[2].setAttribute("stroke", "#00e5a0");
+  }
 }
 
 (function initTheme() {
   const saved = localStorage.getItem("ib-theme");
   if (saved === "light") {
     document.body.classList.add("light");
-    // Иконка и лейбл обновятся после DOMContentLoaded
+    // updateShieldTheme вызовется после DOMContentLoaded
   }
 })();
 
@@ -3723,9 +3741,10 @@ function toggleTheme() {
 // ============================================================
 document.addEventListener("DOMContentLoaded", function () {
   if (document.body.classList.contains("light")) {
-    document.getElementById("themeIcon").textContent = "🌙";
-    document.getElementById("themeLabel").textContent = "Тёмная";
-  }
+  document.getElementById("themeIcon").textContent = "🌙";
+  document.getElementById("themeLabel").textContent = "Тёмная";
+  updateShieldTheme(true);
+}
   document
     .querySelectorAll(".fade-in")
     .forEach((el) => el.classList.add("js-animate"));
@@ -7327,7 +7346,10 @@ function togglePasswordVisibility(inputId, btn) {
       const a = s.baseA * (0.5 + 0.5 * Math.sin(s.phase));
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(210, 235, 255, ${a})`;
+      const isLight = document.body.classList.contains('light');
+ctx.fillStyle = isLight
+  ? `rgba(30, 80, 180, ${a * 0.35})`
+  : `rgba(210, 235, 255, ${a})`;
       ctx.fill();
     });
     requestAnimationFrame(draw);
