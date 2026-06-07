@@ -2170,18 +2170,17 @@ h2 {
   align-items: stretch;
 }
 .threats-grid .threat-card {
-  height: 100%;
+  height: auto;
 }
 .threat-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 4px;
-  padding: 2rem;
+  padding: 2rem 2rem 1.5rem;
   transition: all 0.3s;
   position: relative;
   overflow: hidden;
   cursor: default;
-  min-height: 220px;
   display: flex;
   flex-direction: column;
 }
@@ -2221,6 +2220,7 @@ h2 {
   font-size: 0.9rem;
   color: var(--text-dim);
   line-height: 1.7;
+  margin-bottom: 0.75rem;
 }
 .threat-level {
   display: inline-flex;
@@ -2230,7 +2230,7 @@ h2 {
   font-size: 0.7rem;
   letter-spacing: 2px;
   text-transform: uppercase;
-  margin-top: 1rem;
+  margin-top: auto;
   padding: 0.3rem 0.8rem;
   border-radius: 2px;
 }
