@@ -3704,7 +3704,9 @@ let quizAnswers = [];
 function toggleTheme() {
   const isLight = document.body.classList.toggle("light");
   document.getElementById("themeIcon").textContent = isLight ? "☽" : "✦";
-  document.getElementById("themeLabel").textContent = isLight ? "Тёмная" : "Светлая";
+  document.getElementById("themeLabel").textContent = isLight
+    ? "Тёмная"
+    : "Светлая";
   localStorage.setItem("ib-theme", isLight ? "light" : "dark");
   updateShieldTheme(isLight);
 }
@@ -3720,7 +3722,8 @@ function updateShieldTheme(isLight) {
     if (paths[1]) paths[1].setAttribute("stroke", "#0055cc");
     if (paths[2]) paths[2].setAttribute("stroke", "#007a50");
   } else {
-    shield.style.animation = "shieldFloat 3s ease-in-out infinite, shieldGlow 3s ease-in-out infinite";
+    shield.style.animation =
+      "shieldFloat 3s ease-in-out infinite, shieldGlow 3s ease-in-out infinite";
     shield.style.filter = "drop-shadow(0 0 10px rgba(0, 55, 160, 0.25))";
     if (paths[0]) paths[0].setAttribute("stroke", "#00d4ff");
     if (paths[1]) paths[1].setAttribute("stroke", "#00d4ff");
@@ -3741,10 +3744,10 @@ function updateShieldTheme(isLight) {
 // ============================================================
 document.addEventListener("DOMContentLoaded", function () {
   if (document.body.classList.contains("light")) {
-  document.getElementById("themeIcon").textContent = "🌙";
-  document.getElementById("themeLabel").textContent = "Тёмная";
-  updateShieldTheme(true);
-}
+    document.getElementById("themeIcon").textContent = "🌙";
+    document.getElementById("themeLabel").textContent = "Тёмная";
+    updateShieldTheme(true);
+  }
   document
     .querySelectorAll(".fade-in")
     .forEach((el) => el.classList.add("js-animate"));
@@ -4056,23 +4059,24 @@ async function doMaoRegister() {
   okEl.classList.remove("show");
 
   // Строгая проверка формата email
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-if (!name || !email || !password) {
+  if (!name || !email || !password) {
     errEl.textContent = "Заполните имя, email и пароль.";
     errEl.classList.add("show");
     return;
-}
-if (!emailRegex.test(email)) {
-    errEl.textContent = "Введите корректный email-адрес (например: user@company.kz).";
+  }
+  if (!emailRegex.test(email)) {
+    errEl.textContent =
+      "Введите корректный email-адрес (например: user@company.kz).";
     errEl.classList.add("show");
     return;
-}
-if (password.length < 6) {
+  }
+  if (password.length < 6) {
     errEl.textContent = "Пароль должен быть минимум 6 символов.";
     errEl.classList.add("show");
     return;
-}
+  }
 
   const sb = getSupabase();
   const btn = document.getElementById("maoRegBtn");
@@ -4120,22 +4124,23 @@ if (password.length < 6) {
   }
 
   setTimeout(async () => {
-  btn.disabled = false;
-  btn.innerHTML = "Зарегистрироваться";
-  btn.style.color = "";
-  btn.style.borderColor = "";
-  btn.style.animation = "";
+    btn.disabled = false;
+    btn.innerHTML = "Зарегистрироваться";
+    btn.style.color = "";
+    btn.style.borderColor = "";
+    btn.style.animation = "";
 
-  // Автоматически входим после регистрации
-  const { data: signInData, error: signInError } = await sb.auth.signInWithPassword({ email, password });
-  if (!signInError && signInData.session) {
-    currentUser = signInData.session.user;
-    await afterLogin();
-    hideMandatoryOverlay();
-  } else {
-    maoSwitchTab("login");
-  }
-}, 1000);
+    // Автоматически входим после регистрации
+    const { data: signInData, error: signInError } =
+      await sb.auth.signInWithPassword({ email, password });
+    if (!signInError && signInData.session) {
+      currentUser = signInData.session.user;
+      await afterLogin();
+      hideMandatoryOverlay();
+    } else {
+      maoSwitchTab("login");
+    }
+  }, 1000);
 }
 
 // ============================================================
@@ -4146,7 +4151,7 @@ async function initAuth() {
 
   // Проверяем URL на наличие токена восстановления пароля
   const hash = window.location.hash;
-  if (hash && hash.includes('type=recovery')) {
+  if (hash && hash.includes("type=recovery")) {
     showPasswordRecoveryModal();
     return;
   }
@@ -4246,14 +4251,14 @@ async function afterLogin() {
   // Создаём новую сессию для администратора при каждом входе
   // Применить локальный предпросмотр если он есть
   if (currentUser && currentUser.email === "admin@ibacademy.ru") {
-  currentSessionId = null;
-  localStorage.removeItem("adminSessionId");
-  getSessionId();
-  if (hasAdminPreview()) {
-    applyAdminPreviewToUI();
-    updateAdminPreviewBanner();
+    currentSessionId = null;
+    localStorage.removeItem("adminSessionId");
+    getSessionId();
+    if (hasAdminPreview()) {
+      applyAdminPreviewToUI();
+      updateAdminPreviewBanner();
+    }
   }
-}
 }
 
 // Создаём профиль из user_metadata если его нет в БД
@@ -5280,10 +5285,10 @@ async function doLogout() {
     quizQuestions = [];
     moduleScores = {};
     Object.keys(localStorage).forEach((key) => {
-  if (key.startsWith("quizState_")) localStorage.removeItem(key);
-});
-localStorage.removeItem("adminSessionId");
-currentSessionId = null;
+      if (key.startsWith("quizState_")) localStorage.removeItem(key);
+    });
+    localStorage.removeItem("adminSessionId");
+    currentSessionId = null;
     closeVideoModal();
     closeProfileModal();
     updateNavUI();
@@ -5468,7 +5473,7 @@ function openProfileModal() {
   document.getElementById("pmName").value = userProfile.full_name || "";
   document.getElementById("pmRole").value = userProfile.role || "employee";
   document.getElementById("pmDept").value = userProfile.department || "";
-  document.getElementById("pmEmail").value = currentUser.email || ""; 
+  document.getElementById("pmEmail").value = currentUser.email || "";
   const resetEmailEl = document.getElementById("pmResetEmail");
   if (resetEmailEl) resetEmailEl.value = currentUser.email || "";
   pmHideMsg("pmInfoMsg");
@@ -5487,8 +5492,6 @@ function openProfileModal() {
       };
     }
   });
-
-  
 }
 
 function closeProfileModal() {
@@ -5640,7 +5643,7 @@ async function pmSavePass() {
   pmShowMsg(
     "pmPassMsg",
     `✅ Письмо отправлено на ${currentUser.email}. Проверьте почту (и папку «Спам»).`,
-    "ok"
+    "ok",
   );
 }
 
@@ -5692,33 +5695,34 @@ async function pmFillStats() {
         const modPct = Math.round((mods / 6) * 100);
 
         let badgeClass = "empty";
-let badgeText = "Не проходили";
+        let badgeText = "Не проходили";
 
-if (score !== null && score >= 65) {
-  badgeClass = "passed";
-  let stars = "";
-  const svgStar = (on, delay = 0) => {
-  if (on) return `<svg width="28" height="28" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle;animation:starPulse 2.5s ease-in-out ${delay}s infinite alternate" xmlns="http://www.w3.org/2000/svg">
+        if (score !== null && score >= 65) {
+          badgeClass = "passed";
+          let stars = "";
+          const svgStar = (on, delay = 0) => {
+            if (on)
+              return `<svg width="28" height="28" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle;animation:starPulse 2.5s ease-in-out ${delay}s infinite alternate" xmlns="http://www.w3.org/2000/svg">
     <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="none" stroke="#00d4ff" stroke-width="1.5" stroke-linejoin="round"/>
     <polygon points="12,7 13.6,10.5 17.5,11.1 14.75,13.7 15.4,17.6 12,15.8 8.6,17.6 9.25,13.7 6.5,11.1 10.4,10.5" fill="#00d4ff" opacity="0.5"/>
   </svg>`;
-  return `<svg width="28" height="28" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle;opacity:0.18" xmlns="http://www.w3.org/2000/svg">
+            return `<svg width="28" height="28" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle;opacity:0.18" xmlns="http://www.w3.org/2000/svg">
     <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="none" stroke="#00d4ff" stroke-width="1.5" stroke-linejoin="round"/>
   </svg>`;
-};
+          };
 
-if (score >= 100) {
-  stars = svgStar(true,0) + svgStar(true,0.4) + svgStar(true,0.8);
-} else if (score >= 85) {
-  stars = svgStar(true,0) + svgStar(true,0.4) + svgStar(false);
-} else {
-  stars = svgStar(true,0) + svgStar(false) + svgStar(false);
-}
-badgeText = stars;
-} else if (hasAny) {
-  badgeClass = "progress";
-  badgeText = "В процессе";
-}
+          if (score >= 100) {
+            stars = svgStar(true, 0) + svgStar(true, 0.4) + svgStar(true, 0.8);
+          } else if (score >= 85) {
+            stars = svgStar(true, 0) + svgStar(true, 0.4) + svgStar(false);
+          } else {
+            stars = svgStar(true, 0) + svgStar(false) + svgStar(false);
+          }
+          badgeText = stars;
+        } else if (hasAny) {
+          badgeClass = "progress";
+          badgeText = "В процессе";
+        }
 
         let fillColor = "var(--text-dim)";
         if (passed) fillColor = "var(--success)";
@@ -5736,7 +5740,7 @@ badgeText = stars;
                 <div class="pm-role-stat-name">
                   ${isCurrent ? "→ " : ""}${ROLE_LABELS[role]}
                 </div>
-                <span class="pm-role-stat-badge ${badgeClass}" style="${score !== null && score >= 65 ? 'font-size:1rem;letter-spacing:2px;padding:0.2rem 0.6rem;background:transparent;border-color:transparent;' : ''}">${badgeText}</span>
+                <span class="pm-role-stat-badge ${badgeClass}" style="${score !== null && score >= 65 ? "font-size:1rem;letter-spacing:2px;padding:0.2rem 0.6rem;background:transparent;border-color:transparent;" : ""}">${badgeText}</span>
               </div>
               <div class="pm-role-stat-scores">
                 <span>Модули: ${mods}/6</span>
@@ -5850,11 +5854,15 @@ function renderAdminModuleCards() {
   const role = document.getElementById("adminModuleRole").value;
   const mods = MODULES_BY_ROLE[role];
   const container = document.getElementById("adminModuleCards");
-  container.innerHTML = mods
-    .map(
-      (mod, i) => `
-    <div class="admin-card">
-      <div class="admin-card-title">Модуль ${mod.num} — ${mod.title}</div>
+  container.innerHTML =
+    mods
+      .map(
+        (mod, i) => `
+    <div class="admin-card" data-idx="${i}">
+      <div class="admin-card-header">
+        <div class="admin-card-title">Модуль ${mod.num} — ${mod.title}</div>
+        <button class="admin-delete-btn" onclick="deleteAdminModule('${role}', ${i})" title="Удалить модуль">✕</button>
+      </div>
       <div class="admin-field">
         <label>Заголовок</label>
         <input class="admin-input" id="amod-${role}-${i}-title" value="${escAttr(mod.title)}">
@@ -5871,40 +5879,68 @@ function renderAdminModuleCards() {
         <label>Длительность</label>
         <input class="admin-input" id="amod-${role}-${i}-dur" value="${escAttr(mod.duration)}" placeholder="например: 11:12">
       </div>
-      <div class="admin-msg ${adminUndoStack[`module-${role}-${i}`] ? "show ok" : ""}" id="amod-msg-${role}-${i}">${adminUndoStack[`module-${role}-${i}`] ? "✅ Сохранено!" : ""}</div>
+      <div class="admin-msg" id="amod-msg-${role}-${i}"></div>
       <div style="display:flex;flex-direction:row;align-items:center;gap:0.5rem;align-self:flex-end;margin-top:0.25rem;flex-wrap:wrap">
-  <button class="admin-preview-btn" onclick="previewAdminModule('${role}', ${i})">👁 Сохранить у себя</button>
-  <button class="admin-save-btn" style="margin-top:0" onclick="saveAdminModule('${role}', ${i})">💾 Сохранить для всех</button>
-</div>
+        <button class="admin-preview-btn" onclick="previewAdminModule('${role}', ${i})">👁 Сохранить у себя</button>
+        <button class="admin-save-btn" style="margin-top:0" onclick="saveAdminModule('${role}', ${i})">💾 Сохранить для всех</button>
+      </div>
     </div>
   `,
-    )
-    .join("");
+      )
+      .join("") +
+    `
+    <button class="admin-add-btn" onclick="addAdminModule('${role}')">
+      <span class="admin-add-plus">+</span>
+      <span class="admin-add-label">Добавить модуль</span>
+    </button>
+  `;
   restoreUndoButtons();
 }
 
 async function saveAdminModule(role, i) {
   const mod = MODULES_BY_ROLE[role][i];
   const beforeData = {
-    title: mod.title, desc: mod.desc,
-    videoId: mod.videoId, duration: mod.duration, tags: mod.tags,
+    title: mod.title,
+    desc: mod.desc,
+    videoId: mod.videoId,
+    duration: mod.duration,
+    tags: mod.tags,
   };
   const title = document.getElementById(`amod-${role}-${i}-title`).value.trim();
   const desc = document.getElementById(`amod-${role}-${i}-desc`).value.trim();
   const videoId = document.getElementById(`amod-${role}-${i}-vid`).value.trim();
-  const duration = document.getElementById(`amod-${role}-${i}-dur`).value.trim();
+  const duration = document
+    .getElementById(`amod-${role}-${i}-dur`)
+    .value.trim();
   const msgEl = document.getElementById(`amod-msg-${role}-${i}`);
-  const btn = document.querySelector(`#adminModuleCards .admin-card:nth-child(${i + 1}) .admin-save-btn`);
+  const btn = document.querySelector(
+    `#adminModuleCards .admin-card[data-idx="${i}"] .admin-save-btn`,
+  );
 
-  if (btn) { btn.disabled = true; btn.innerHTML = createCertLoadingHTML(); }
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = createCertLoadingHTML();
+  }
 
   const sb = getSupabase();
   const { error } = await sb.from("modules_content").upsert(
-    { role, num: mod.num, title, description: desc, video_id: videoId, duration, tags: mod.tags, updated_at: new Date().toISOString() },
-    { onConflict: "role,num" }
+    {
+      role,
+      num: mod.num,
+      title,
+      description: desc,
+      video_id: videoId,
+      duration,
+      tags: mod.tags,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "role,num" },
   );
 
-  if (btn) { btn.disabled = false; btn.innerHTML = "💾 Сохранить"; }
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = "💾 Сохранить для всех";
+  }
 
   if (error) {
     showAdminMsg(msgEl, "❌ Ошибка: " + error.message, "err");
@@ -5920,15 +5956,62 @@ async function saveAdminModule(role, i) {
   }
 }
 
+async function deleteAdminModule(role, i) {
+  if (
+    !confirm(
+      `Удалить модуль "${MODULES_BY_ROLE[role][i].title}"? Это действие нельзя отменить через историю.`,
+    )
+  )
+    return;
+  const mod = MODULES_BY_ROLE[role][i];
+  const sb = getSupabase();
+  await sb.from("modules_content").delete().eq("role", role).eq("num", mod.num);
+  MODULES_BY_ROLE[role].splice(i, 1);
+  MODULES_BY_ROLE[role].forEach((m, idx) => (m.num = idx + 1));
+  if (role === currentRole) renderModules();
+  renderAdminModuleCards();
+}
+
+async function addAdminModule(role) {
+  const newNum = MODULES_BY_ROLE[role].length + 1;
+  const newMod = {
+    num: newNum,
+    title: "Новый модуль",
+    desc: "Описание модуля",
+    tags: ["Базовый", "Лекция"],
+    duration: "0:00",
+    videoId: "",
+  };
+  MODULES_BY_ROLE[role].push(newMod);
+  renderAdminModuleCards();
+  // Скроллим к новой карточке
+  setTimeout(() => {
+    const cards = document.querySelectorAll("#adminModuleCards .admin-card");
+    if (cards.length)
+      cards[cards.length - 1].scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+  }, 100);
+}
+
 async function previewAdminModule(role, i) {
   const title = document.getElementById(`amod-${role}-${i}-title`).value.trim();
   const desc = document.getElementById(`amod-${role}-${i}-desc`).value.trim();
   const videoId = document.getElementById(`amod-${role}-${i}-vid`).value.trim();
-  const duration = document.getElementById(`amod-${role}-${i}-dur`).value.trim();
+  const duration = document
+    .getElementById(`amod-${role}-${i}-dur`)
+    .value.trim();
   const mod = MODULES_BY_ROLE[role][i];
   const msgEl = document.getElementById(`amod-msg-${role}-${i}`);
 
-  saveAdminPreviewItem("module", `${role}:${mod.num}`, { title, desc, videoId, duration, tags: mod.tags });
+  saveAdminPreviewItem("module", `${role}:${mod.num}`, {
+    title,
+    desc,
+    videoId,
+    duration,
+    tags: mod.tags,
+  });
   showAdminMsg(msgEl, "👁 Сохранено у вас. Видите только вы.", "ok");
 }
 
@@ -5955,11 +6038,15 @@ function renderAdminQuizCards() {
   const role = document.getElementById("adminQuizRole").value;
   const questions = QUESTIONS_BY_ROLE[role];
   const container = document.getElementById("adminQuizCards");
-  container.innerHTML = questions
-    .map(
-      (q, i) => `
-    <div class="admin-card">
-      <div class="admin-card-title">Вопрос ${i + 1} · ${q.module}</div>
+  container.innerHTML =
+    questions
+      .map(
+        (q, i) => `
+    <div class="admin-card" data-idx="${i}">
+      <div class="admin-card-header">
+        <div class="admin-card-title">Вопрос ${i + 1} · ${q.module}</div>
+        <button class="admin-delete-btn" onclick="deleteAdminQuiz('${role}', ${i})" title="Удалить вопрос">✕</button>
+      </div>
       <div class="admin-field">
         <label>Вопрос</label>
         <textarea class="admin-textarea" id="aq-${role}-${i}-q">${q.q}</textarea>
@@ -5986,43 +6073,123 @@ function renderAdminQuizCards() {
         <label>Объяснение ответа</label>
         <textarea class="admin-textarea" id="aq-${role}-${i}-fb">${q.feedback}</textarea>
       </div>
-      <div class="admin-msg${adminUndoStack[`quiz-${role}-${i}`] ? "show ok" : ""}" id="aq-msg-${role}-${i}">${adminUndoStack[`quiz-${role}-${i}`] ? "✅ Сохранено!" : ""}</div>
+      <div class="admin-msg" id="aq-msg-${role}-${i}"></div>
       <div style="display:flex;flex-direction:row;align-items:center;gap:0.5rem;align-self:flex-end;margin-top:0.25rem;flex-wrap:wrap">
-  <button class="admin-preview-btn" onclick="previewAdminQuiz('${role}', ${i})">👁 Сохранить у себя</button>
-<button class="admin-save-btn" style="margin-top:0" onclick="saveAdminQuiz('${role}', ${i})">💾 Сохранить для всех</button>
-</div>
+        <button class="admin-preview-btn" onclick="previewAdminQuiz('${role}', ${i})">👁 Сохранить у себя</button>
+        <button class="admin-save-btn" style="margin-top:0" onclick="saveAdminQuiz('${role}', ${i})">💾 Сохранить для всех</button>
+      </div>
     </div>
   `,
-    )
-    .join("");
+      )
+      .join("") +
+    `
+    <button class="admin-add-btn" onclick="addAdminQuiz('${role}')">
+      <span class="admin-add-plus">+</span>
+      <span class="admin-add-label">Добавить вопрос</span>
+    </button>
+  `;
   restoreUndoButtons();
+}
+
+async function deleteAdminQuiz(role, i) {
+  if (!confirm(`Удалить вопрос ${i + 1}?`)) return;
+  const sb = getSupabase();
+  await sb
+    .from("quiz_content")
+    .delete()
+    .eq("role", role)
+    .eq("question_index", i);
+  QUESTIONS_BY_ROLE[role].splice(i, 1);
+  const remaining = QUESTIONS_BY_ROLE[role];
+  for (let j = i; j < remaining.length; j++) {
+    await sb
+      .from("quiz_content")
+      .update({ question_index: j })
+      .eq("role", role)
+      .eq("question_index", j + 1);
+  }
+  if (role === currentRole) renderQuiz();
+  renderAdminQuizCards();
+}
+
+async function addAdminQuiz(role) {
+  const newQ = {
+    module: `Модуль · Новый`,
+    q: "Текст нового вопроса",
+    options: ["Вариант A", "Вариант B", "Вариант C", "Вариант D"],
+    correct: 0,
+    feedback: "Объяснение правильного ответа.",
+  };
+  QUESTIONS_BY_ROLE[role].push(newQ);
+  renderAdminQuizCards();
+  setTimeout(() => {
+    const cards = document.querySelectorAll("#adminQuizCards .admin-card");
+    if (cards.length)
+      cards[cards.length - 1].scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+  }, 100);
 }
 
 async function saveAdminQuiz(role, i) {
   const q = QUESTIONS_BY_ROLE[role][i];
-  const beforeData = { q: q.q, options: [...q.options], correct: q.correct, feedback: q.feedback, module: q.module };
+  const beforeData = {
+    q: q.q,
+    options: [...q.options],
+    correct: q.correct,
+    feedback: q.feedback,
+    module: q.module,
+  };
   const question = document.getElementById(`aq-${role}-${i}-q`).value.trim();
   const feedback = document.getElementById(`aq-${role}-${i}-fb`).value.trim();
-  const options = [0, 1, 2, 3].map((oi) => document.getElementById(`aq-${role}-${i}-opt-${oi}`).value.trim());
-  const correctRadio = document.querySelector(`input[name="aq-correct-${role}-${i}"]:checked`);
+  const options = [0, 1, 2, 3].map((oi) =>
+    document.getElementById(`aq-${role}-${i}-opt-${oi}`).value.trim(),
+  );
+  const correctRadio = document.querySelector(
+    `input[name="aq-correct-${role}-${i}"]:checked`,
+  );
   const correct = correctRadio ? parseInt(correctRadio.value) : q.correct;
   const msgEl = document.getElementById(`aq-msg-${role}-${i}`);
-  const btn = document.querySelector(`#adminQuizCards .admin-card:nth-child(${i + 1}) .admin-save-btn`);
+  const btn = document.querySelector(
+    `#adminQuizCards .admin-card:nth-child(${i + 1}) .admin-save-btn`,
+  );
 
-  if (btn) { btn.disabled = true; btn.innerHTML = createCertLoadingHTML(); }
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = createCertLoadingHTML();
+  }
 
   const sb = getSupabase();
   const { error } = await sb.from("quiz_content").upsert(
-    { role, question_index: i, module_tag: q.module, question, options, correct_index: correct, feedback, updated_at: new Date().toISOString() },
-    { onConflict: "role,question_index" }
+    {
+      role,
+      question_index: i,
+      module_tag: q.module,
+      question,
+      options,
+      correct_index: correct,
+      feedback,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "role,question_index" },
   );
 
-  if (btn) { btn.disabled = false; btn.innerHTML = "💾 Сохранить"; }
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = "💾 Сохранить";
+  }
 
   if (error) {
     showAdminMsg(msgEl, "❌ Ошибка: " + error.message, "err");
   } else {
-    const afterData = { q: question, options, correct, feedback, module: q.module };
+    const afterData = {
+      q: question,
+      options,
+      correct,
+      feedback,
+      module: q.module,
+    };
     await recordChange("quiz", `${role}:${i}`, beforeData, afterData);
     QUESTIONS_BY_ROLE[role][i].q = question;
     QUESTIONS_BY_ROLE[role][i].options = options;
@@ -6037,12 +6204,22 @@ async function previewAdminQuiz(role, i) {
   const q = QUESTIONS_BY_ROLE[role][i];
   const question = document.getElementById(`aq-${role}-${i}-q`).value.trim();
   const feedback = document.getElementById(`aq-${role}-${i}-fb`).value.trim();
-  const options = [0, 1, 2, 3].map((oi) => document.getElementById(`aq-${role}-${i}-opt-${oi}`).value.trim());
-  const correctRadio = document.querySelector(`input[name="aq-correct-${role}-${i}"]:checked`);
+  const options = [0, 1, 2, 3].map((oi) =>
+    document.getElementById(`aq-${role}-${i}-opt-${oi}`).value.trim(),
+  );
+  const correctRadio = document.querySelector(
+    `input[name="aq-correct-${role}-${i}"]:checked`,
+  );
   const correct = correctRadio ? parseInt(correctRadio.value) : q.correct;
   const msgEl = document.getElementById(`aq-msg-${role}-${i}`);
 
-  saveAdminPreviewItem("quiz", `${role}:${i}`, { q: question, options, correct, feedback, module: q.module });
+  saveAdminPreviewItem("quiz", `${role}:${i}`, {
+    q: question,
+    options,
+    correct,
+    feedback,
+    module: q.module,
+  });
   showAdminMsg(msgEl, "👁 Сохранено у вас. Видите только вы.", "ok");
 }
 
@@ -6096,11 +6273,15 @@ let threatsData = JSON.parse(JSON.stringify(THREATS_DEFAULT));
 
 function renderAdminThreats() {
   const sec = document.getElementById("adminSectionThreats");
-  sec.innerHTML = threatsData
-    .map(
-      (t, i) => `
-    <div class="admin-card">
-      <div class="admin-card-title">${t.icon} Угроза ${i + 1}</div>
+  sec.innerHTML =
+    threatsData
+      .map(
+        (t, i) => `
+    <div class="admin-card" data-idx="${i}">
+      <div class="admin-card-header">
+        <div class="admin-card-title">${t.icon} Угроза ${i + 1}</div>
+        <button class="admin-delete-btn" onclick="deleteAdminThreat(${i})" title="Удалить угрозу">✕</button>
+      </div>
       <div class="admin-field">
         <label>Иконка (эмодзи)</label>
         <input class="admin-input" id="athr-${i}-icon" value="${escAttr(t.icon)}" style="width:80px">
@@ -6121,47 +6302,151 @@ function renderAdminThreats() {
           <option value="level-low" ${t.level === "level-low" ? "selected" : ""}>● Управляемый риск</option>
         </select>
       </div>
-      <div class="admin-msg${adminUndoStack[`threat-${i}`] ? "show ok" : ""}" id="athr-msg-${i}">${adminUndoStack[`threat-${i}`] ? "✅ Сохранено!" : ""}</div>
+      <div class="admin-msg" id="athr-msg-${i}"></div>
       <div style="display:flex;flex-direction:row;align-items:center;gap:0.5rem;align-self:flex-end;margin-top:0.25rem;flex-wrap:wrap">
-  <button class="admin-preview-btn" onclick="previewAdminThreat(${i})">👁 Сохранить у себя</button>
-<button class="admin-save-btn" style="margin-top:0" onclick="saveAdminThreat(${i})">💾 Сохранить для всех</button>
-</div>
+        <button class="admin-preview-btn" onclick="previewAdminThreat(${i})">👁 Сохранить у себя</button>
+        <button class="admin-save-btn" style="margin-top:0" onclick="saveAdminThreat(${i})">💾 Сохранить для всех</button>
+      </div>
     </div>
   `,
-    )
-    .join("");
+      )
+      .join("") +
+    `
+    <button class="admin-add-btn" onclick="addAdminThreat()">
+      <span class="admin-add-plus">+</span>
+      <span class="admin-add-label">Добавить угрозу</span>
+    </button>
+  `;
   restoreUndoButtons();
 }
 
+async function deleteAdminThreat(i) {
+  if (!confirm(`Удалить угрозу "${threatsData[i].title}"?`)) return;
+  const sb = getSupabase();
+  if (threatsData[i]._dbId !== undefined) {
+    await sb.from("threats_content").delete().eq("id", threatsData[i]._dbId);
+  }
+  threatsData.splice(i, 1);
+  renderThreatsSection();
+  renderAdminThreats();
+}
+
+async function addAdminThreat() {
+  threatsData.push({
+    icon: "⚡",
+    title: "Новая угроза",
+    desc: "Описание угрозы",
+    level: "level-med",
+    levelText: "● Средний риск",
+  });
+  renderAdminThreats();
+  setTimeout(() => {
+    const cards = document.querySelectorAll("#adminSectionThreats .admin-card");
+    if (cards.length)
+      cards[cards.length - 1].scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+  }, 100);
+}
+
 async function saveAdminThreat(i) {
-  const beforeData = { icon: threatsData[i].icon, title: threatsData[i].title, desc: threatsData[i].desc, level: threatsData[i].level, levelText: threatsData[i].levelText };
+  const beforeData = {
+    icon: threatsData[i].icon,
+    title: threatsData[i].title,
+    desc: threatsData[i].desc,
+    level: threatsData[i].level,
+    levelText: threatsData[i].levelText,
+  };
   const icon = document.getElementById(`athr-${i}-icon`).value.trim();
   const title = document.getElementById(`athr-${i}-title`).value.trim();
   const desc = document.getElementById(`athr-${i}-desc`).value.trim();
   const level = document.getElementById(`athr-${i}-level`).value;
-  const levelTextMap = { "level-high": "● Высокий риск", "level-med": "● Средний риск", "level-low": "● Управляемый риск" };
+  const levelTextMap = {
+    "level-high": "● Высокий риск",
+    "level-med": "● Средний риск",
+    "level-low": "● Управляемый риск",
+  };
   const msgEl = document.getElementById(`athr-msg-${i}`);
-  const btn = document.querySelector(`#adminSectionThreats .admin-card:nth-child(${i + 1}) .admin-save-btn`);
-
-  if (btn) { btn.disabled = true; btn.innerHTML = createCertLoadingHTML(); }
-
-  const sb = getSupabase();
-  const { error } = await sb.from("threats_content").upsert(
-    { id: i + 1, icon, title, description: desc, level, updated_at: new Date().toISOString() },
-    { onConflict: "id" }
+  const btn = document.querySelector(
+    `#adminSectionThreats .admin-card[data-idx="${i}"] .admin-save-btn`,
   );
 
-  if (btn) { btn.disabled = false; btn.innerHTML = "💾 Сохранить"; }
-
-  if (error) {
-    showAdminMsg(msgEl, "❌ Ошибка: " + error.message, "err");
-  } else {
-    const afterData = { icon, title, desc, level, levelText: levelTextMap[level] };
-    await recordChange("threat", `${i}`, beforeData, afterData);
-    threatsData[i] = { icon, title, desc, level, levelText: levelTextMap[level] };
-    renderThreatsSection();
-    showAdminMsg(msgEl, "✅ Сохранено!", "ok");
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = createCertLoadingHTML();
   }
+
+  const sb = getSupabase();
+
+  // Используем стабильный id из самого объекта, а не из позиции в массиве
+  if (threatsData[i]._dbId === undefined) {
+    // Новая запись — вставляем и запоминаем id
+    const { data, error } = await sb
+      .from("threats_content")
+      .insert({
+        icon,
+        title,
+        description: desc,
+        level,
+        updated_at: new Date().toISOString(),
+      })
+      .select("id")
+      .single();
+    if (error) {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = "💾 Сохранить для всех";
+      }
+      showAdminMsg(msgEl, "❌ Ошибка: " + error.message, "err");
+      return;
+    }
+    threatsData[i]._dbId = data.id;
+  } else {
+    // Существующая запись — обновляем по реальному id
+    const { error } = await sb.from("threats_content").upsert(
+      {
+        id: threatsData[i]._dbId,
+        icon,
+        title,
+        description: desc,
+        level,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "id" },
+    );
+    if (error) {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = "💾 Сохранить для всех";
+      }
+      showAdminMsg(msgEl, "❌ Ошибка: " + error.message, "err");
+      return;
+    }
+  }
+
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = "💾 Сохранить для всех";
+  }
+  const afterData = {
+    icon,
+    title,
+    desc,
+    level,
+    levelText: levelTextMap[level],
+  };
+  await recordChange("threat", `${i}`, beforeData, afterData);
+  threatsData[i] = {
+    ...threatsData[i],
+    icon,
+    title,
+    desc,
+    level,
+    levelText: levelTextMap[level],
+  };
+  renderThreatsSection();
+  showAdminMsg(msgEl, "✅ Сохранено!", "ok");
 }
 
 async function previewAdminThreat(i) {
@@ -6169,10 +6454,20 @@ async function previewAdminThreat(i) {
   const title = document.getElementById(`athr-${i}-title`).value.trim();
   const desc = document.getElementById(`athr-${i}-desc`).value.trim();
   const level = document.getElementById(`athr-${i}-level`).value;
-  const levelTextMap = { "level-high": "● Высокий риск", "level-med": "● Средний риск", "level-low": "● Управляемый риск" };
+  const levelTextMap = {
+    "level-high": "● Высокий риск",
+    "level-med": "● Средний риск",
+    "level-low": "● Управляемый риск",
+  };
   const msgEl = document.getElementById(`athr-msg-${i}`);
 
-  saveAdminPreviewItem("threat", `${i}`, { icon, title, desc, level, levelText: levelTextMap[level] });
+  saveAdminPreviewItem("threat", `${i}`, {
+    icon,
+    title,
+    desc,
+    level,
+    levelText: levelTextMap[level],
+  });
   showAdminMsg(msgEl, "👁 Сохранено у вас. Видите только вы.", "ok");
 }
 
@@ -6196,10 +6491,14 @@ function renderThreatsSection() {
 // --- NEWS ---
 function renderAdminNews() {
   const sec = document.getElementById("adminSectionNews");
-  sec.innerHTML = NEWS_ITEMS.map(
-    (item, i) => `
-    <div class="admin-card">
-      <div class="admin-card-title">Новость ${i + 1}</div>
+  sec.innerHTML =
+    NEWS_ITEMS.map(
+      (item, i) => `
+    <div class="admin-card" data-idx="${i}">
+      <div class="admin-card-header">
+        <div class="admin-card-title">Новость ${i + 1}</div>
+        <button class="admin-delete-btn" onclick="deleteAdminNews(${i})" title="Удалить новость">✕</button>
+      </div>
       <div class="admin-field">
         <label>Заголовок</label>
         <input class="admin-input" id="anews-${i}-title" value="${escAttr(item.title)}">
@@ -6224,19 +6523,63 @@ function renderAdminNews() {
         <label>YouTube Video ID</label>
         <input class="admin-input" id="anews-${i}-vid" value="${escAttr(item.videoId)}" placeholder="например: PKHH_gvJ_hA">
       </div>
-      <div class="admin-msg${adminUndoStack[`news-${i}`] ? "show ok" : ""}" id="anews-msg-${i}">${adminUndoStack[`news-${i}`] ? "✅ Сохранено!" : ""}</div>
+      <div class="admin-msg" id="anews-msg-${i}"></div>
       <div style="display:flex;flex-direction:row;align-items:center;gap:0.5rem;align-self:flex-end;margin-top:0.25rem;flex-wrap:wrap">
-  <button class="admin-preview-btn" onclick="previewAdminNews(${i})">👁 Сохранить у себя</button>
-<button class="admin-save-btn" style="margin-top:0" onclick="saveAdminNews(${i})">💾 Сохранить для всех</button>
-</div>
+        <button class="admin-preview-btn" onclick="previewAdminNews(${i})">👁 Сохранить у себя</button>
+        <button class="admin-save-btn" style="margin-top:0" onclick="saveAdminNews(${i})">💾 Сохранить для всех</button>
+      </div>
     </div>
   `,
-  ).join("");
+    ).join("") +
+    `
+    <button class="admin-add-btn" onclick="addAdminNews()">
+      <span class="admin-add-plus">+</span>
+      <span class="admin-add-label">Добавить новость</span>
+    </button>
+  `;
   restoreUndoButtons();
 }
 
+async function deleteAdminNews(i) {
+  if (!confirm(`Удалить новость "${NEWS_ITEMS[i].title}"?`)) return;
+  const sb = getSupabase();
+  const dbId = NEWS_ITEMS[i]._dbId;
+  if (dbId) await sb.from("news_content").delete().eq("id", dbId);
+  NEWS_ITEMS.splice(i, 1);
+  renderNews();
+  renderAdminNews();
+}
+
+async function addAdminNews() {
+  NEWS_ITEMS.push({
+    title: "Новый инцидент",
+    desc: "Описание инцидента",
+    impact: "💥 Последствия",
+    date: new Date().getFullYear().toString(),
+    cat: "Новое",
+    videoId: "",
+    thumb: "",
+  });
+  renderAdminNews();
+  setTimeout(() => {
+    const cards = document.querySelectorAll("#adminSectionNews .admin-card");
+    if (cards.length)
+      cards[cards.length - 1].scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+  }, 100);
+}
+
 async function saveAdminNews(i) {
-  const beforeData = { title: NEWS_ITEMS[i].title, desc: NEWS_ITEMS[i].desc, impact: NEWS_ITEMS[i].impact, date: NEWS_ITEMS[i].date, cat: NEWS_ITEMS[i].cat, videoId: NEWS_ITEMS[i].videoId };
+  const beforeData = {
+    title: NEWS_ITEMS[i].title,
+    desc: NEWS_ITEMS[i].desc,
+    impact: NEWS_ITEMS[i].impact,
+    date: NEWS_ITEMS[i].date,
+    cat: NEWS_ITEMS[i].cat,
+    videoId: NEWS_ITEMS[i].videoId,
+  };
   const title = document.getElementById(`anews-${i}-title`).value.trim();
   const desc = document.getElementById(`anews-${i}-desc`).value.trim();
   const impact = document.getElementById(`anews-${i}-impact`).value.trim();
@@ -6244,24 +6587,74 @@ async function saveAdminNews(i) {
   const cat = document.getElementById(`anews-${i}-cat`).value.trim();
   const videoId = document.getElementById(`anews-${i}-vid`).value.trim();
   const msgEl = document.getElementById(`anews-msg-${i}`);
-  const btn = document.querySelector(`#adminSectionNews .admin-card:nth-child(${i + 1}) .admin-save-btn`);
-
-  if (btn) { btn.disabled = true; btn.innerHTML = createCertLoadingHTML(); }
-
-  const sb = getSupabase();
-  const { error } = await sb.from("news_content").upsert(
-    { id: i + 1, title, description: desc, impact, date, category: cat, video_id: videoId, updated_at: new Date().toISOString() },
-    { onConflict: "id" }
+  const btn = document.querySelector(
+    `#adminSectionNews .admin-card[data-idx="${i}"] .admin-save-btn`,
   );
 
-  if (btn) { btn.disabled = false; btn.innerHTML = "💾 Сохранить"; }
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = createCertLoadingHTML();
+  }
+
+  const sb = getSupabase();
+  const existingDbId = NEWS_ITEMS[i]._dbId;
+  let savedId = existingDbId;
+
+  let error;
+  if (!existingDbId) {
+    const { data: inserted, error: insertErr } = await sb
+      .from("news_content")
+      .insert({
+        title,
+        description: desc,
+        impact,
+        date,
+        category: cat,
+        video_id: videoId,
+        updated_at: new Date().toISOString(),
+      })
+      .select("id")
+      .single();
+    error = insertErr;
+    if (!insertErr) savedId = inserted.id;
+  } else {
+    const { error: upsertErr } = await sb.from("news_content").upsert(
+      {
+        id: existingDbId,
+        title,
+        description: desc,
+        impact,
+        date,
+        category: cat,
+        video_id: videoId,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "id" },
+    );
+    error = upsertErr;
+  }
+
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = "💾 Сохранить для всех";
+  }
 
   if (error) {
     showAdminMsg(msgEl, "❌ Ошибка: " + error.message, "err");
   } else {
     const afterData = { title, desc, impact, date, cat, videoId };
     await recordChange("news", `${i}`, beforeData, afterData);
-    NEWS_ITEMS[i] = { ...NEWS_ITEMS[i], title, desc, impact, date, cat, videoId, thumb: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` };
+    NEWS_ITEMS[i] = {
+      ...NEWS_ITEMS[i],
+      _dbId: savedId,
+      title,
+      desc,
+      impact,
+      date,
+      cat,
+      videoId,
+      thumb: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+    };
     renderNews();
     showAdminMsg(msgEl, "✅ Сохранено!", "ok");
   }
@@ -6276,7 +6669,14 @@ async function previewAdminNews(i) {
   const videoId = document.getElementById(`anews-${i}-vid`).value.trim();
   const msgEl = document.getElementById(`anews-msg-${i}`);
 
-  saveAdminPreviewItem("news", `${i}`, { title, desc, impact, date, cat, videoId });
+  saveAdminPreviewItem("news", `${i}`, {
+    title,
+    desc,
+    impact,
+    date,
+    cat,
+    videoId,
+  });
   showAdminMsg(msgEl, "👁 Сохранено у вас. Видите только вы.", "ok");
 }
 
@@ -6348,11 +6748,15 @@ let tipsData = JSON.parse(JSON.stringify(TIPS_DEFAULT));
 
 function renderAdminTips() {
   const sec = document.getElementById("adminSectionTips");
-  sec.innerHTML = tipsData
-    .map(
-      (tip, i) => `
-    <div class="admin-card">
-      <div class="admin-card-title">${tip.icon} Совет ${i + 1}</div>
+  sec.innerHTML =
+    tipsData
+      .map(
+        (tip, i) => `
+    <div class="admin-card" data-idx="${i}">
+      <div class="admin-card-header">
+        <div class="admin-card-title">${tip.icon} Совет ${i + 1}</div>
+        <button class="admin-delete-btn" onclick="deleteAdminTip(${i})" title="Удалить совет">✕</button>
+      </div>
       <div class="admin-field">
         <label>Иконка (эмодзи)</label>
         <input class="admin-input" id="atip-${i}-icon" value="${escAttr(tip.icon)}" style="width:80px">
@@ -6365,42 +6769,113 @@ function renderAdminTips() {
         <label>Описание</label>
         <textarea class="admin-textarea" id="atip-${i}-desc">${tip.desc}</textarea>
       </div>
-      <div class="admin-msg${adminUndoStack[`tip-${i}`] ? "show ok" : ""}" id="atip-msg-${i}">${adminUndoStack[`tip-${i}`] ? "✅ Сохранено!" : ""}</div>
+      <div class="admin-msg" id="atip-msg-${i}"></div>
       <div style="display:flex;flex-direction:row;align-items:center;gap:0.5rem;align-self:flex-end;margin-top:0.25rem;flex-wrap:wrap">
-  <button class="admin-preview-btn" onclick="previewAdminTip(${i})">👁 Сохранить у себя</button>
-<button class="admin-save-btn" style="margin-top:0" onclick="saveAdminTip(${i})">💾 Сохранить для всех</button>
-</div>
+        <button class="admin-preview-btn" onclick="previewAdminTip(${i})">👁 Сохранить у себя</button>
+        <button class="admin-save-btn" style="margin-top:0" onclick="saveAdminTip(${i})">💾 Сохранить для всех</button>
+      </div>
     </div>
   `,
-    )
-    .join("");
+      )
+      .join("") +
+    `
+    <button class="admin-add-btn" onclick="addAdminTip()">
+      <span class="admin-add-plus">+</span>
+      <span class="admin-add-label">Добавить совет</span>
+    </button>
+  `;
   restoreUndoButtons();
 }
 
+async function deleteAdminTip(i) {
+  if (!confirm(`Удалить совет "${tipsData[i].title}"?`)) return;
+  const sb = getSupabase();
+  const dbId = tipsData[i]._dbId;
+  if (dbId) await sb.from("tips_content").delete().eq("id", dbId);
+  tipsData.splice(i, 1);
+  renderTipsSection();
+  renderAdminTips();
+}
+
+async function addAdminTip() {
+  tipsData.push({
+    icon: "✨",
+    title: "Новый совет",
+    desc: "Описание совета по безопасности.",
+  });
+  renderAdminTips();
+  setTimeout(() => {
+    const cards = document.querySelectorAll("#adminSectionTips .admin-card");
+    if (cards.length)
+      cards[cards.length - 1].scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+  }, 100);
+}
+
 async function saveAdminTip(i) {
-  const beforeData = { icon: tipsData[i].icon, title: tipsData[i].title, desc: tipsData[i].desc };
+  const beforeData = {
+    icon: tipsData[i].icon,
+    title: tipsData[i].title,
+    desc: tipsData[i].desc,
+  };
   const icon = document.getElementById(`atip-${i}-icon`).value.trim();
   const title = document.getElementById(`atip-${i}-title`).value.trim();
   const desc = document.getElementById(`atip-${i}-desc`).value.trim();
   const msgEl = document.getElementById(`atip-msg-${i}`);
-  const btn = document.querySelector(`#adminSectionTips .admin-card:nth-child(${i + 1}) .admin-save-btn`);
-
-  if (btn) { btn.disabled = true; btn.innerHTML = createCertLoadingHTML(); }
-
-  const sb = getSupabase();
-  const { error } = await sb.from("tips_content").upsert(
-    { id: i + 1, icon, title, description: desc, updated_at: new Date().toISOString() },
-    { onConflict: "id" }
+  const btn = document.querySelector(
+    `#adminSectionTips .admin-card[data-idx="${i}"] .admin-save-btn`,
   );
 
-  if (btn) { btn.disabled = false; btn.innerHTML = "💾 Сохранить"; }
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = createCertLoadingHTML();
+  }
+
+  const sb = getSupabase();
+  const existingDbId = tipsData[i]._dbId;
+  let savedId = existingDbId;
+
+  let error;
+  if (!existingDbId) {
+    const { data: inserted, error: insertErr } = await sb
+      .from("tips_content")
+      .insert({
+        icon,
+        title,
+        description: desc,
+        updated_at: new Date().toISOString(),
+      })
+      .select("id")
+      .single();
+    error = insertErr;
+    if (!insertErr) savedId = inserted.id;
+  } else {
+    const { error: upsertErr } = await sb.from("tips_content").upsert(
+      {
+        id: existingDbId,
+        icon,
+        title,
+        description: desc,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "id" },
+    );
+    error = upsertErr;
+  }
+
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = "💾 Сохранить для всех";
+  }
 
   if (error) {
     showAdminMsg(msgEl, "❌ Ошибка: " + error.message, "err");
   } else {
     const afterData = { icon, title, desc };
     await recordChange("tip", `${i}`, beforeData, afterData);
-    tipsData[i] = { icon, title, desc };
+    tipsData[i] = { ...tipsData[i], _dbId: savedId, icon, title, desc };
     renderTipsSection();
     showAdminMsg(msgEl, "✅ Сохранено!", "ok");
   }
@@ -6697,44 +7172,73 @@ async function loadContentFromDB() {
 
   try {
     // Модули
+    // Модули
     const { data: modsDB } = await sb.from("modules_content").select("*");
     if (modsDB && modsDB.length > 0) {
       modsDB.forEach((row) => {
-        if (MODULES_BY_ROLE[row.role]) {
-          const idx = MODULES_BY_ROLE[row.role].findIndex(
-            (m) => m.num === row.num,
-          );
-          if (idx !== -1) {
-            if (row.title) MODULES_BY_ROLE[row.role][idx].title = row.title;
-            if (row.description)
-              MODULES_BY_ROLE[row.role][idx].desc = row.description;
-            if (row.video_id)
-              MODULES_BY_ROLE[row.role][idx].videoId = row.video_id;
-            if (row.duration)
-              MODULES_BY_ROLE[row.role][idx].duration = row.duration;
-          }
+        if (!MODULES_BY_ROLE[row.role]) return;
+        const idx = MODULES_BY_ROLE[row.role].findIndex(
+          (m) => m.num === row.num,
+        );
+        if (idx !== -1) {
+          // Обновляем существующий
+          if (row.title) MODULES_BY_ROLE[row.role][idx].title = row.title;
+          if (row.description)
+            MODULES_BY_ROLE[row.role][idx].desc = row.description;
+          if (row.video_id)
+            MODULES_BY_ROLE[row.role][idx].videoId = row.video_id;
+          if (row.duration)
+            MODULES_BY_ROLE[row.role][idx].duration = row.duration;
+        } else {
+          // Добавляем новый модуль которого нет в дефолтных данных
+          MODULES_BY_ROLE[row.role].push({
+            num: row.num,
+            title: row.title || "Новый модуль",
+            desc: row.description || "",
+            tags: row.tags || ["Базовый", "Лекция"],
+            duration: row.duration || "0:00",
+            videoId: row.video_id || "",
+          });
         }
+      });
+      // Сортируем по num после добавления
+      Object.keys(MODULES_BY_ROLE).forEach((role) => {
+        MODULES_BY_ROLE[role].sort((a, b) => a.num - b.num);
       });
     }
 
     // Вопросы теста
+    // Вопросы теста
     const { data: quizDB } = await sb.from("quiz_content").select("*");
     if (quizDB && quizDB.length > 0) {
       quizDB.forEach((row) => {
-        if (
-          QUESTIONS_BY_ROLE[row.role] &&
-          QUESTIONS_BY_ROLE[row.role][row.question_index]
-        ) {
-          const q = QUESTIONS_BY_ROLE[row.role][row.question_index];
-          if (row.question) q.q = row.question;
-          if (row.options) q.options = row.options;
-          if (row.correct_index !== null) q.correct = row.correct_index;
-          if (row.feedback) q.feedback = row.feedback;
+        if (!QUESTIONS_BY_ROLE[row.role]) return;
+        const existing = QUESTIONS_BY_ROLE[row.role][row.question_index];
+        if (existing) {
+          // Обновляем существующий
+          if (row.question) existing.q = row.question;
+          if (row.options) existing.options = row.options;
+          if (row.correct_index !== null) existing.correct = row.correct_index;
+          if (row.feedback) existing.feedback = row.feedback;
+        } else {
+          // Добавляем новый вопрос на нужную позицию
+          QUESTIONS_BY_ROLE[row.role][row.question_index] = {
+            module: row.module_tag || "Модуль · Новый",
+            q: row.question || "Текст вопроса",
+            options: row.options || ["A", "B", "C", "D"],
+            correct: row.correct_index ?? 0,
+            feedback: row.feedback || "",
+          };
         }
+      });
+      // Убираем дыры в массивах (undefined) если question_index не последовательный
+      Object.keys(QUESTIONS_BY_ROLE).forEach((role) => {
+        QUESTIONS_BY_ROLE[role] = QUESTIONS_BY_ROLE[role].filter(Boolean);
       });
     }
 
     // Угрозы
+    // Угрозы — полностью пересобираем из БД если есть данные
     const { data: threatsDB } = await sb
       .from("threats_content")
       .select("*")
@@ -6745,19 +7249,27 @@ async function loadContentFromDB() {
         "level-med": "● Средний риск",
         "level-low": "● Управляемый риск",
       };
-      threatsDB.forEach((row, i) => {
-        if (threatsData[i]) {
-          if (row.icon) threatsData[i].icon = row.icon;
-          if (row.title) threatsData[i].title = row.title;
-          if (row.description) threatsData[i].desc = row.description;
-          if (row.level) threatsData[i].level = row.level;
-          if (row.level)
-            threatsData[i].levelText = levelTextMap[row.level] || row.level;
-        }
+      // Полностью заменяем массив данными из БД
+      threatsData.length = 0;
+      threatsDB.forEach((row) => {
+        threatsData.push({
+          _dbId: row.id,
+          icon: row.icon || "⚡",
+          title: row.title || "",
+          desc: row.description || "",
+          level: row.level || "level-med",
+          levelText: levelTextMap[row.level] || "● Средний риск",
+        });
       });
       renderThreatsSection();
+    } else {
+      // Нет записей в БД — проставляем _dbId = undefined для дефолтных
+      threatsData.forEach((t) => {
+        if (t._dbId === undefined) t._dbId = undefined;
+      });
     }
 
+    // Новости
     // Новости
     const { data: newsDB } = await sb
       .from("news_content")
@@ -6765,7 +7277,21 @@ async function loadContentFromDB() {
       .order("id");
     if (newsDB && newsDB.length > 0) {
       newsDB.forEach((row, i) => {
-        if (NEWS_ITEMS[i]) {
+        if (!NEWS_ITEMS[i]) {
+          // Новая запись — добавляем
+          NEWS_ITEMS.push({
+            _dbId: row.id,
+            title: row.title || "",
+            desc: row.description || "",
+            impact: row.impact || "",
+            date: row.date || "",
+            cat: row.category || "",
+            videoId: row.video_id || "",
+            thumb: `https://img.youtube.com/vi/${row.video_id || ""}/hqdefault.jpg`,
+          });
+        } else {
+          // Обновляем существующую
+          NEWS_ITEMS[i]._dbId = row.id;
           if (row.title) NEWS_ITEMS[i].title = row.title;
           if (row.description) NEWS_ITEMS[i].desc = row.description;
           if (row.impact) NEWS_ITEMS[i].impact = row.impact;
@@ -6786,12 +7312,20 @@ async function loadContentFromDB() {
       .select("*")
       .order("id");
     if (tipsDB && tipsDB.length > 0) {
-      tipsDB.forEach((row, i) => {
-        if (tipsData[i]) {
-          if (row.icon) tipsData[i].icon = row.icon;
-          if (row.title) tipsData[i].title = row.title;
-          if (row.description) tipsData[i].desc = row.description;
-        }
+      const levelTextMap = {
+        "level-high": "● Высокий риск",
+        "level-med": "● Средний риск",
+        "level-low": "● Управляемый риск",
+      };
+      // Полностью пересобираем из БД как угрозы
+      tipsData.length = 0;
+      tipsDB.forEach((row) => {
+        tipsData.push({
+          _dbId: row.id,
+          icon: row.icon || "✨",
+          title: row.title || "",
+          desc: row.description || "",
+        });
       });
       renderTipsSection();
     }
@@ -6853,7 +7387,9 @@ function applyAdminPreviewToUI() {
     Object.entries(preview.module).forEach(([key, data]) => {
       const [role, num] = key.split(":");
       if (!MODULES_BY_ROLE[role]) return;
-      const idx = MODULES_BY_ROLE[role].findIndex((m) => m.num === parseInt(num));
+      const idx = MODULES_BY_ROLE[role].findIndex(
+        (m) => m.num === parseInt(num),
+      );
       if (idx !== -1) {
         if (data.title) MODULES_BY_ROLE[role][idx].title = data.title;
         if (data.desc) MODULES_BY_ROLE[role][idx].desc = data.desc;
@@ -6877,7 +7413,7 @@ function applyAdminPreviewToUI() {
   if (preview.threat) {
     Object.entries(preview.threat).forEach(([key, data]) => {
       const idx = parseInt(key);
-      if (threatsData[idx]) threatsData[idx] = { ...data };
+      if (threatsData[idx]) threatsData[idx] = { ...threatsData[idx], ...data };
     });
     renderThreatsSection();
   }
@@ -6886,8 +7422,10 @@ function applyAdminPreviewToUI() {
     Object.entries(preview.news).forEach(([key, data]) => {
       const idx = parseInt(key);
       if (NEWS_ITEMS[idx]) {
-        Object.assign(NEWS_ITEMS[idx], data);
-        if (data.videoId) NEWS_ITEMS[idx].thumb = `https://img.youtube.com/vi/${data.videoId}/hqdefault.jpg`;
+        NEWS_ITEMS[idx] = { ...NEWS_ITEMS[idx], ...data };
+        if (data.videoId)
+          NEWS_ITEMS[idx].thumb =
+            `https://img.youtube.com/vi/${data.videoId}/hqdefault.jpg`;
       }
     });
     renderNews();
@@ -6896,7 +7434,7 @@ function applyAdminPreviewToUI() {
   if (preview.tip) {
     Object.entries(preview.tip).forEach(([key, data]) => {
       const idx = parseInt(key);
-      if (tipsData[idx]) tipsData[idx] = { ...data };
+      if (tipsData[idx]) tipsData[idx] = { ...tipsData[idx], ...data };
     });
     renderTipsSection();
   }
@@ -6931,7 +7469,7 @@ function updateAdminPreviewBanner() {
   `;
   // Вставляем сразу после nav
   document.body.appendChild(banner);
-document.body.classList.add('has-preview-banner');
+  document.body.classList.add("has-preview-banner");
 }
 
 // Сбросить все локальные изменения и перезагрузить контент из БД
@@ -6939,7 +7477,7 @@ async function discardAdminPreview() {
   clearAdminPreview();
   const banner = document.getElementById("adminPreviewBanner");
   if (banner) banner.remove();
-  document.body.classList.remove('has-preview-banner');
+  document.body.classList.remove("has-preview-banner");
   await loadContentFromDB();
   renderModules();
   renderQuiz();
@@ -6960,17 +7498,34 @@ async function publishAdminPreview() {
 
   try {
     if (preview.module) {
-  const { data: dbMods } = await sb.from("modules_content").select("*");
-  for (const [key, data] of Object.entries(preview.module)) {
-    const [role, num] = key.split(":");
-    const dbRow = (dbMods || []).find(r => r.role === role && r.num === parseInt(num));
-    const mod = MODULES_BY_ROLE[role]?.find((m) => m.num === parseInt(num));
-    const beforeData = dbRow
-      ? { title: dbRow.title, desc: dbRow.description, videoId: dbRow.video_id, duration: dbRow.duration, tags: dbRow.tags }
-      : (mod ? { title: mod.title, desc: mod.desc, videoId: mod.videoId, duration: mod.duration, tags: mod.tags } : data);
+      const { data: dbMods } = await sb.from("modules_content").select("*");
+      for (const [key, data] of Object.entries(preview.module)) {
+        const [role, num] = key.split(":");
+        const dbRow = (dbMods || []).find(
+          (r) => r.role === role && r.num === parseInt(num),
+        );
+        const mod = MODULES_BY_ROLE[role]?.find((m) => m.num === parseInt(num));
+        const beforeData = dbRow
+          ? {
+              title: dbRow.title,
+              desc: dbRow.description,
+              videoId: dbRow.video_id,
+              duration: dbRow.duration,
+              tags: dbRow.tags,
+            }
+          : mod
+            ? {
+                title: mod.title,
+                desc: mod.desc,
+                videoId: mod.videoId,
+                duration: mod.duration,
+                tags: mod.tags,
+              }
+            : data;
         const { error } = await sb.from("modules_content").upsert(
           {
-            role, num: parseInt(num),
+            role,
+            num: parseInt(num),
             title: data.title,
             description: data.desc,
             video_id: data.videoId,
@@ -6978,9 +7533,12 @@ async function publishAdminPreview() {
             tags: mod?.tags || [],
             updated_at: new Date().toISOString(),
           },
-          { onConflict: "role,num" }
+          { onConflict: "role,num" },
         );
-        if (error) { errors.push(error.message); continue; }
+        if (error) {
+          errors.push(error.message);
+          continue;
+        }
         await recordChange("module", key, beforeData, data);
         if (mod) {
           mod.title = data.title;
@@ -6992,17 +7550,34 @@ async function publishAdminPreview() {
     }
 
     if (preview.quiz) {
-  const { data: dbQuiz } = await sb.from("quiz_content").select("*");
-  for (const [key, data] of Object.entries(preview.quiz)) {
-    const [role, i] = key.split(":");
-    const dbRow = (dbQuiz || []).find(r => r.role === role && r.question_index === parseInt(i));
-    const q = QUESTIONS_BY_ROLE[role]?.[parseInt(i)];
-    const beforeData = dbRow
-      ? { q: dbRow.question, options: dbRow.options, correct: dbRow.correct_index, feedback: dbRow.feedback, module: dbRow.module_tag }
-      : (q ? { q: q.q, options: [...q.options], correct: q.correct, feedback: q.feedback, module: q.module } : data);
+      const { data: dbQuiz } = await sb.from("quiz_content").select("*");
+      for (const [key, data] of Object.entries(preview.quiz)) {
+        const [role, i] = key.split(":");
+        const dbRow = (dbQuiz || []).find(
+          (r) => r.role === role && r.question_index === parseInt(i),
+        );
+        const q = QUESTIONS_BY_ROLE[role]?.[parseInt(i)];
+        const beforeData = dbRow
+          ? {
+              q: dbRow.question,
+              options: dbRow.options,
+              correct: dbRow.correct_index,
+              feedback: dbRow.feedback,
+              module: dbRow.module_tag,
+            }
+          : q
+            ? {
+                q: q.q,
+                options: [...q.options],
+                correct: q.correct,
+                feedback: q.feedback,
+                module: q.module,
+              }
+            : data;
         const { error } = await sb.from("quiz_content").upsert(
           {
-            role, question_index: parseInt(i),
+            role,
+            question_index: parseInt(i),
             module_tag: data.module,
             question: data.q,
             options: data.options,
@@ -7010,79 +7585,231 @@ async function publishAdminPreview() {
             feedback: data.feedback,
             updated_at: new Date().toISOString(),
           },
-          { onConflict: "role,question_index" }
+          { onConflict: "role,question_index" },
         );
-        if (error) { errors.push(error.message); continue; }
+        if (error) {
+          errors.push(error.message);
+          continue;
+        }
         await recordChange("quiz", key, beforeData, data);
         if (q) Object.assign(q, data);
       }
     }
 
     if (preview.threat) {
-  const { data: dbThreats } = await sb.from("threats_content").select("*").order("id");
-  for (const [key, data] of Object.entries(preview.threat)) {
-    const idx = parseInt(key);
-    const dbRow = (dbThreats || [])[idx];
-    const beforeData = dbRow
-      ? { icon: dbRow.icon, title: dbRow.title, desc: dbRow.description, level: dbRow.level, levelText: threatsData[idx]?.levelText }
-      : (threatsData[idx] ? { ...threatsData[idx] } : data);
-        const { error } = await sb.from("threats_content").upsert(
-          {
-            id: idx + 1, icon: data.icon, title: data.title,
-            description: data.desc, level: data.level,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "id" }
-        );
-        if (error) { errors.push(error.message); continue; }
+      const { data: dbThreats } = await sb
+        .from("threats_content")
+        .select("*")
+        .order("id");
+      for (const [key, data] of Object.entries(preview.threat)) {
+        const idx = parseInt(key);
+        const existingDbId = threatsData[idx]?._dbId;
+        const dbRow = existingDbId
+          ? (dbThreats || []).find((r) => r.id === existingDbId)
+          : (dbThreats || [])[idx];
+        const beforeData = dbRow
+          ? {
+              icon: dbRow.icon,
+              title: dbRow.title,
+              desc: dbRow.description,
+              level: dbRow.level,
+              levelText: threatsData[idx]?.levelText,
+            }
+          : threatsData[idx]
+            ? { ...threatsData[idx] }
+            : data;
+
+        let savedId = existingDbId;
+
+        if (!existingDbId) {
+          // Новая запись — insert
+          const { data: inserted, error } = await sb
+            .from("threats_content")
+            .insert({
+              icon: data.icon,
+              title: data.title,
+              description: data.desc,
+              level: data.level,
+              updated_at: new Date().toISOString(),
+            })
+            .select("id")
+            .single();
+          if (error) {
+            errors.push(error.message);
+            continue;
+          }
+          savedId = inserted.id;
+        } else {
+          // Существующая — upsert по реальному id
+          const { error } = await sb.from("threats_content").upsert(
+            {
+              id: existingDbId,
+              icon: data.icon,
+              title: data.title,
+              description: data.desc,
+              level: data.level,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "id" },
+          );
+          if (error) {
+            errors.push(error.message);
+            continue;
+          }
+        }
+
         await recordChange("threat", key, beforeData, data);
-        threatsData[idx] = { ...data };
+        const levelTextMap = {
+          "level-high": "● Высокий риск",
+          "level-med": "● Средний риск",
+          "level-low": "● Управляемый риск",
+        };
+        threatsData[idx] = {
+          ...data,
+          _dbId: savedId,
+          levelText: levelTextMap[data.level] || data.levelText,
+        };
       }
       renderThreatsSection();
     }
 
     if (preview.news) {
-  const { data: dbNews } = await sb.from("news_content").select("*").order("id");
-  for (const [key, data] of Object.entries(preview.news)) {
-    const idx = parseInt(key);
-    const dbRow = (dbNews || [])[idx];
-    const beforeData = dbRow
-      ? { title: dbRow.title, desc: dbRow.description, impact: dbRow.impact, date: dbRow.date, cat: dbRow.category, videoId: dbRow.video_id }
-      : (NEWS_ITEMS[idx] ? { title: NEWS_ITEMS[idx].title, desc: NEWS_ITEMS[idx].desc, impact: NEWS_ITEMS[idx].impact, date: NEWS_ITEMS[idx].date, cat: NEWS_ITEMS[idx].cat, videoId: NEWS_ITEMS[idx].videoId } : data);
-        const { error } = await sb.from("news_content").upsert(
-          {
-            id: idx + 1, title: data.title, description: data.desc,
-            impact: data.impact, date: data.date, category: data.cat,
-            video_id: data.videoId, updated_at: new Date().toISOString(),
-          },
-          { onConflict: "id" }
-        );
-        if (error) { errors.push(error.message); continue; }
+      const { data: dbNews } = await sb
+        .from("news_content")
+        .select("*")
+        .order("id");
+      for (const [key, data] of Object.entries(preview.news)) {
+        const idx = parseInt(key);
+        const existingDbId = NEWS_ITEMS[idx]?._dbId;
+        const dbRow = existingDbId
+          ? (dbNews || []).find((r) => r.id === existingDbId)
+          : (dbNews || [])[idx];
+        const beforeData = dbRow
+          ? {
+              title: dbRow.title,
+              desc: dbRow.description,
+              impact: dbRow.impact,
+              date: dbRow.date,
+              cat: dbRow.category,
+              videoId: dbRow.video_id,
+            }
+          : NEWS_ITEMS[idx]
+            ? {
+                title: NEWS_ITEMS[idx].title,
+                desc: NEWS_ITEMS[idx].desc,
+                impact: NEWS_ITEMS[idx].impact,
+                date: NEWS_ITEMS[idx].date,
+                cat: NEWS_ITEMS[idx].cat,
+                videoId: NEWS_ITEMS[idx].videoId,
+              }
+            : data;
+
+        let savedId = existingDbId;
+
+        if (!existingDbId) {
+          const { data: inserted, error } = await sb
+            .from("news_content")
+            .insert({
+              title: data.title,
+              description: data.desc,
+              impact: data.impact,
+              date: data.date,
+              category: data.cat,
+              video_id: data.videoId,
+              updated_at: new Date().toISOString(),
+            })
+            .select("id")
+            .single();
+          if (error) {
+            errors.push(error.message);
+            continue;
+          }
+          savedId = inserted.id;
+        } else {
+          const { error } = await sb.from("news_content").upsert(
+            {
+              id: existingDbId,
+              title: data.title,
+              description: data.desc,
+              impact: data.impact,
+              date: data.date,
+              category: data.cat,
+              video_id: data.videoId,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "id" },
+          );
+          if (error) {
+            errors.push(error.message);
+            continue;
+          }
+        }
+
         await recordChange("news", key, beforeData, data);
-        Object.assign(NEWS_ITEMS[idx], data);
-        if (data.videoId) NEWS_ITEMS[idx].thumb = `https://img.youtube.com/vi/${data.videoId}/hqdefault.jpg`;
+        NEWS_ITEMS[idx] = {
+          ...NEWS_ITEMS[idx],
+          ...data,
+          _dbId: savedId,
+          thumb: `https://img.youtube.com/vi/${data.videoId}/hqdefault.jpg`,
+        };
       }
       renderNews();
     }
 
     if (preview.tip) {
-      const { data: dbTips } = await sb.from("tips_content").select("*").order("id");
+      const { data: dbTips } = await sb
+        .from("tips_content")
+        .select("*")
+        .order("id");
       for (const [key, data] of Object.entries(preview.tip)) {
         const idx = parseInt(key);
-        const dbRow = (dbTips || [])[idx];
+        const existingDbId = tipsData[idx]?._dbId;
+        const dbRow = existingDbId
+          ? (dbTips || []).find((r) => r.id === existingDbId)
+          : (dbTips || [])[idx];
         const beforeData = dbRow
           ? { icon: dbRow.icon, title: dbRow.title, desc: dbRow.description }
-          : (tipsData[idx] ? { ...tipsData[idx] } : data);
-        const { error } = await sb.from("tips_content").upsert(
-          {
-            id: idx + 1, icon: data.icon, title: data.title,
-            description: data.desc, updated_at: new Date().toISOString(),
-          },
-          { onConflict: "id" }
-        );
-        if (error) { errors.push(error.message); continue; }
+          : tipsData[idx]
+            ? { ...tipsData[idx] }
+            : data;
+
+        let savedId = existingDbId;
+
+        if (!existingDbId) {
+          const { data: inserted, error } = await sb
+            .from("tips_content")
+            .insert({
+              icon: data.icon,
+              title: data.title,
+              description: data.desc,
+              updated_at: new Date().toISOString(),
+            })
+            .select("id")
+            .single();
+          if (error) {
+            errors.push(error.message);
+            continue;
+          }
+          savedId = inserted.id;
+        } else {
+          const { error } = await sb.from("tips_content").upsert(
+            {
+              id: existingDbId,
+              icon: data.icon,
+              title: data.title,
+              description: data.desc,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "id" },
+          );
+          if (error) {
+            errors.push(error.message);
+            continue;
+          }
+        }
+
         await recordChange("tip", key, beforeData, data);
-        tipsData[idx] = { ...data };
+        tipsData[idx] = { ...data, _dbId: savedId };
       }
       renderTipsSection();
     }
@@ -7181,7 +7908,11 @@ async function revertChangeById(historyId) {
     .single();
 
   if (error || !row) {
-    console.warn("revertChangeById: не удалось загрузить запись", historyId, error);
+    console.warn(
+      "revertChangeById: не удалось загрузить запись",
+      historyId,
+      error,
+    );
     if (btn) {
       btn.disabled = false;
       btn.innerHTML = "↩ Откат";
@@ -7190,7 +7921,12 @@ async function revertChangeById(historyId) {
     return;
   }
 
-  await revertChange(historyId, row.before_data, row.content_type, row.content_key);
+  await revertChange(
+    historyId,
+    row.before_data,
+    row.content_type,
+    row.content_key,
+  );
 }
 
 // Откат одного конкретного изменения
@@ -7245,7 +7981,9 @@ async function applyContentData(contentType, contentKey, data) {
       },
       { onConflict: "role,num" },
     );
-    const idx = MODULES_BY_ROLE[role]?.findIndex((m) => m.num === parseInt(num));
+    const idx = MODULES_BY_ROLE[role]?.findIndex(
+      (m) => m.num === parseInt(num),
+    );
     if (idx !== -1 && idx !== undefined) {
       if (data.title) MODULES_BY_ROLE[role][idx].title = data.title;
       if (data.desc) MODULES_BY_ROLE[role][idx].desc = data.desc;
@@ -7253,7 +7991,6 @@ async function applyContentData(contentType, contentKey, data) {
       if (data.duration) MODULES_BY_ROLE[role][idx].duration = data.duration;
     }
     if (role === currentRole) renderModules();
-
   } else if (contentType === "quiz") {
     const [role, i] = contentKey.split(":");
     await sb.from("quiz_content").upsert(
@@ -7279,7 +8016,6 @@ async function applyContentData(contentType, contentKey, data) {
       });
     }
     if (role === currentRole) renderQuiz();
-
   } else if (contentType === "threat") {
     const idx = parseInt(contentKey);
     const levelTextMap = {
@@ -7306,7 +8042,6 @@ async function applyContentData(contentType, contentKey, data) {
       levelText: levelTextMap[data.level] || data.levelText || data.level,
     };
     renderThreatsSection();
-
   } else if (contentType === "news") {
     const idx = parseInt(contentKey);
     await sb.from("news_content").upsert(
@@ -7333,7 +8068,6 @@ async function applyContentData(contentType, contentKey, data) {
       thumb: `https://img.youtube.com/vi/${data.videoId}/hqdefault.jpg`,
     };
     renderNews();
-
   } else if (contentType === "tip") {
     const idx = parseInt(contentKey);
     await sb.from("tips_content").upsert(
@@ -7487,7 +8221,12 @@ async function renderAdminHistory() {
             ">${rows.length} изм.</span>
           </div>
           ${(() => {
-            const allReverted = rows.every(r => r.note && (r.note.startsWith("REVERTED") || r.note.startsWith("REVERT of")));
+            const allReverted = rows.every(
+              (r) =>
+                r.note &&
+                (r.note.startsWith("REVERTED") ||
+                  r.note.startsWith("REVERT of")),
+            );
             return allReverted
               ? `<button disabled style="
                   background:transparent;border:1px solid var(--border);color:var(--text-dim);
@@ -7570,12 +8309,18 @@ async function showDiff(historyId) {
       const a = JSON.stringify(after[key] ?? "");
       if (b === a) return null;
 
-      const bVal = before[key] !== undefined
-        ? (Array.isArray(before[key]) ? before[key].join(" | ") : String(before[key]))
-        : "(отсутствует)";
-      const aVal = after[key] !== undefined
-        ? (Array.isArray(after[key]) ? after[key].join(" | ") : String(after[key]))
-        : "(отсутствует)";
+      const bVal =
+        before[key] !== undefined
+          ? Array.isArray(before[key])
+            ? before[key].join(" | ")
+            : String(before[key])
+          : "(отсутствует)";
+      const aVal =
+        after[key] !== undefined
+          ? Array.isArray(after[key])
+            ? after[key].join(" | ")
+            : String(after[key])
+          : "(отсутствует)";
 
       return `
         <div style="margin-bottom:0.75rem">
@@ -7645,7 +8390,9 @@ function togglePasswordVisibility(inputId, btn) {
   const canvas = document.getElementById("star-canvas");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
-  let W, H, stars = [];
+  let W,
+    H,
+    stars = [];
   let meteors = [];
 
   function resize() {
@@ -7671,27 +8418,27 @@ function togglePasswordVisibility(inputId, btn) {
 
   // Цветовые темы для метеоритов
   const METEOR_PALETTES = [
-    { head: "255,255,255", core: "180,220,255", tail: "100,180,255" },   // ледяной голубой
-    { head: "255,255,255", core: "200,160,255", tail: "120,80,255" },    // фиолетовый
-    { head: "255,255,255", core: "160,240,200", tail: "0,212,255" },     // акцентный циан
-    { head: "255,255,255", core: "255,220,150", tail: "255,140,60" },    // золотисто-оранжевый
-    { head: "255,255,255", core: "255,180,200", tail: "220,60,120" },    // розово-малиновый
+    { head: "255,255,255", core: "180,220,255", tail: "100,180,255" }, // ледяной голубой
+    { head: "255,255,255", core: "200,160,255", tail: "120,80,255" }, // фиолетовый
+    { head: "255,255,255", core: "160,240,200", tail: "0,212,255" }, // акцентный циан
+    { head: "255,255,255", core: "255,220,150", tail: "255,140,60" }, // золотисто-оранжевый
+    { head: "255,255,255", core: "255,180,200", tail: "220,60,120" }, // розово-малиновый
   ];
 
   function spawnMeteor() {
-    const palette = METEOR_PALETTES[Math.floor(Math.random() * METEOR_PALETTES.length)];
+    const palette =
+      METEOR_PALETTES[Math.floor(Math.random() * METEOR_PALETTES.length)];
     const angle = Math.PI / 4 + (Math.random() - 0.5) * 0.35;
     const len = Math.random() * 340 + 180;
     const speed = Math.random() * 8 + 7;
     const width = Math.random() * 1.5 + 1.2;
 
     // Часть метеоритов начинается за экраном сверху-справа
-    const startX = Math.random() < 0.7
-      ? Math.random() * W * 1.3
-      : W * 0.6 + Math.random() * W * 0.6;
-    const startY = Math.random() < 0.7
-      ? Math.random() * H * 0.25
-      : -len * 0.3;
+    const startX =
+      Math.random() < 0.7
+        ? Math.random() * W * 1.3
+        : W * 0.6 + Math.random() * W * 0.6;
+    const startY = Math.random() < 0.7 ? Math.random() * H * 0.25 : -len * 0.3;
 
     meteors.push({
       x: startX,
@@ -7713,7 +8460,7 @@ function togglePasswordVisibility(inputId, btn) {
   let pageVisible = true;
   let meteorTimer = null;
 
-  document.addEventListener('visibilitychange', () => {
+  document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       pageVisible = false;
       clearTimeout(meteorTimer);
@@ -7731,10 +8478,20 @@ function togglePasswordVisibility(inputId, btn) {
       if (!document.body.classList.contains("light") && pageVisible) {
         spawnMeteor();
         if (Math.random() < 0.45) {
-          setTimeout(() => { if (pageVisible) spawnMeteor(); }, 200 + Math.random() * 600);
+          setTimeout(
+            () => {
+              if (pageVisible) spawnMeteor();
+            },
+            200 + Math.random() * 600,
+          );
         }
         if (Math.random() < 0.15) {
-          setTimeout(() => { if (pageVisible) spawnMeteor(); }, 600 + Math.random() * 800);
+          setTimeout(
+            () => {
+              if (pageVisible) spawnMeteor();
+            },
+            600 + Math.random() * 800,
+          );
         }
       }
       scheduleMeteor();
@@ -7764,7 +8521,12 @@ function togglePasswordVisibility(inputId, btn) {
     ctx.stroke();
 
     // Слой 2: средний яркий хвост
-    const mid = ctx.createLinearGradient(m.x, m.y, m.x - dx * 0.7, m.y - dy * 0.7);
+    const mid = ctx.createLinearGradient(
+      m.x,
+      m.y,
+      m.x - dx * 0.7,
+      m.y - dy * 0.7,
+    );
     mid.addColorStop(0, `rgba(${p.head}, ${alpha * 0.8})`);
     mid.addColorStop(0.4, `rgba(${p.core}, ${alpha * 0.4})`);
     mid.addColorStop(1, `rgba(${p.tail}, 0)`);
@@ -7776,7 +8538,12 @@ function togglePasswordVisibility(inputId, btn) {
     ctx.stroke();
 
     // Слой 3: яркое ядро хвоста
-    const core = ctx.createLinearGradient(m.x, m.y, m.x - dx * 0.35, m.y - dy * 0.35);
+    const core = ctx.createLinearGradient(
+      m.x,
+      m.y,
+      m.x - dx * 0.35,
+      m.y - dy * 0.35,
+    );
     core.addColorStop(0, `rgba(255,255,255, ${alpha * 0.95})`);
     core.addColorStop(0.5, `rgba(${p.core}, ${alpha * 0.6})`);
     core.addColorStop(1, `rgba(${p.tail}, 0)`);
@@ -7818,8 +8585,8 @@ function togglePasswordVisibility(inputId, btn) {
     }
 
     // Рисуем и обновляем искры
-    m.sparks = m.sparks.filter(s => s.life > 0);
-    m.sparks.forEach(s => {
+    m.sparks = m.sparks.filter((s) => s.life > 0);
+    m.sparks.forEach((s) => {
       ctx.beginPath();
       ctx.arc(s.x, s.y, 1, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(${s.color}, ${s.life * alpha})`;
@@ -7927,8 +8694,8 @@ function showPasswordRecoveryModal() {
   document.body.appendChild(overlay);
 
   // Enter для полей
-  ["recoveryNewPass", "recoveryNewPass2"].forEach(id => {
-    document.getElementById(id).addEventListener("keydown", e => {
+  ["recoveryNewPass", "recoveryNewPass2"].forEach((id) => {
+    document.getElementById(id).addEventListener("keydown", (e) => {
       if (e.key === "Enter") submitPasswordRecovery();
     });
   });
@@ -7944,12 +8711,14 @@ async function submitPasswordRecovery() {
 
   if (!pass || pass.length < 6) {
     msgEl.textContent = "Пароль должен быть минимум 6 символов.";
-    msgEl.style.cssText = "display:block;background:rgba(255,59,92,0.1);border:1px solid var(--danger);color:var(--danger);border-radius:3px;padding:0.65rem 1rem;font-size:0.85rem;margin-bottom:1rem";
+    msgEl.style.cssText =
+      "display:block;background:rgba(255,59,92,0.1);border:1px solid var(--danger);color:var(--danger);border-radius:3px;padding:0.65rem 1rem;font-size:0.85rem;margin-bottom:1rem";
     return;
   }
   if (pass !== pass2) {
     msgEl.textContent = "Пароли не совпадают.";
-    msgEl.style.cssText = "display:block;background:rgba(255,59,92,0.1);border:1px solid var(--danger);color:var(--danger);border-radius:3px;padding:0.65rem 1rem;font-size:0.85rem;margin-bottom:1rem";
+    msgEl.style.cssText =
+      "display:block;background:rgba(255,59,92,0.1);border:1px solid var(--danger);color:var(--danger);border-radius:3px;padding:0.65rem 1rem;font-size:0.85rem;margin-bottom:1rem";
     return;
   }
 
@@ -7966,12 +8735,14 @@ async function submitPasswordRecovery() {
 
   if (error) {
     msgEl.textContent = "❌ Ошибка: " + error.message;
-    msgEl.style.cssText = "display:block;background:rgba(255,59,92,0.1);border:1px solid var(--danger);color:var(--danger);border-radius:3px;padding:0.65rem 1rem;font-size:0.85rem;margin-bottom:1rem";
+    msgEl.style.cssText =
+      "display:block;background:rgba(255,59,92,0.1);border:1px solid var(--danger);color:var(--danger);border-radius:3px;padding:0.65rem 1rem;font-size:0.85rem;margin-bottom:1rem";
     return;
   }
 
   msgEl.textContent = "✅ Пароль успешно изменён!";
-  msgEl.style.cssText = "display:block;background:rgba(0,229,160,0.1);border:1px solid var(--success);color:var(--success);border-radius:3px;padding:0.65rem 1rem;font-size:0.85rem;margin-bottom:1rem";
+  msgEl.style.cssText =
+    "display:block;background:rgba(0,229,160,0.1);border:1px solid var(--success);color:var(--success);border-radius:3px;padding:0.65rem 1rem;font-size:0.85rem;margin-bottom:1rem";
 
   setTimeout(() => {
     const overlay = document.getElementById("passwordRecoveryOverlay");
