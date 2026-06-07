@@ -3807,6 +3807,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("maoLoginEmail").addEventListener("keydown", (e) => {
     if (e.key === "Enter") doMaoLogin();
   });
+  document.getElementById('maoForgotBtn').addEventListener('click', doForgotPassword);
 
   document.getElementById("logoutBtn").addEventListener("click", doLogout);
   document
@@ -4004,6 +4005,39 @@ async function doMaoLogin() {
     currentUser = data.session.user;
     await afterLogin();
     hideMandatoryOverlay();
+  }
+}
+
+async function doForgotPassword() {
+  const email = document.getElementById('maoLoginEmail').value.trim();
+  const errEl = document.getElementById('maoLoginError');
+  errEl.classList.remove('show');
+  if (!email) {
+    errEl.textContent = 'Введите email для восстановления пароля.';
+    errEl.classList.add('show');
+    return;
+  }
+  const sb = getSupabase();
+  const btn = document.getElementById('maoForgotBtn');
+  btn.disabled = true;
+  btn.textContent = 'Отправляем...';
+  const redirectTo = window.location.origin + window.location.pathname;
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+  btn.disabled = false;
+  btn.textContent = 'Забыли пароль?';
+  if (error) {
+    errEl.textContent = '❌ Ошибка: ' + error.message;
+    errEl.classList.add('show');
+  } else {
+    errEl.style.background = 'rgba(0,229,160,0.1)';
+    errEl.style.borderColor = 'var(--success)';
+    errEl.style.color = 'var(--success)';
+    errEl.textContent = '✅ Ссылка отправлена на ' + email;
+    errEl.classList.add('show');
+    setTimeout(() => {
+      errEl.classList.remove('show');
+      errEl.style = '';
+    }, 5000);
   }
 }
 
@@ -4533,8 +4567,9 @@ function renderQuiz() {
   quizQuestions =
     QUESTIONS_BY_ROLE[currentRole] || QUESTIONS_BY_ROLE["employee"];
   const n = quizQuestions.length;
-  document.getElementById("quizDesc").textContent =
-    `Проверьте знания по всем ${Math.ceil(n / 2.5)} модулям программы. Тест адаптирован под вашу должность — ${ROLE_LABELS[currentRole] || "Сотрудник"}.`;
+  const modCount = (MODULES_BY_ROLE[currentRole] || MODULES_BY_ROLE["employee"]).length;
+document.getElementById("quizDesc").textContent =
+    `Проверьте знания по всем ${modCount} модулям программы. Тест адаптирован под вашу должность — ${ROLE_LABELS[currentRole] || "Сотрудник"}.`;
   document.getElementById("quizPerfectDesc").textContent =
     `Вы ответили верно на все ${n} вопросов — 100% правильных ответов. Превосходно!`;
 
@@ -4854,9 +4889,7 @@ async function showResult() {
   }
 
   const bd = document.getElementById("quizBreakdown");
-  const uniqueModules = [
-    ...new Set(quizQuestions.filter((q) => !q.practical).map((q) => q.module)),
-  ];
+  const uniqueModules = [...new Set(quizQuestions.map((q) => q.module))];
   bd.innerHTML = uniqueModules
     .map((m) => {
       const s = moduleScores[m] || { correct: 0, total: 0 };
@@ -5787,7 +5820,31 @@ async function pmFillStats() {
 // ============================================================
 //  ADMIN PANEL
 // ============================================================
+let adminDragIdx = null;
 
+function adminDragStart(e, idx) {
+  adminDragIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function adminDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.style.borderColor = 'var(--accent)';
+}
+
+function adminDrop(e, role, toIdx, type) {
+  e.preventDefault();
+  e.currentTarget.style.borderColor = '';
+  if (adminDragIdx === null || adminDragIdx === toIdx) return;
+  const arr = type === 'module' ? MODULES_BY_ROLE[role] : QUESTIONS_BY_ROLE[role];
+  const [moved] = arr.splice(adminDragIdx, 1);
+  arr.splice(toIdx, 0, moved);
+  if (type === 'module') arr.forEach((m, i) => m.num = i + 1);
+  adminDragIdx = null;
+  if (type === 'module') renderAdminModuleCards();
+  else renderAdminQuizCards();
+}
 let adminCurrentRole = localStorage.getItem("adminSelectedRole") || "employee";
 let adminUndoStack = JSON.parse(localStorage.getItem("adminUndoStack") || "{}");
 
@@ -5860,13 +5917,21 @@ function renderAdminModuleCards() {
         (mod, i) => `
     <div class="admin-card" data-idx="${i}">
       <div class="admin-card-header">
-        <div class="admin-card-title">Модуль ${mod.num} — ${mod.title}</div>
-        <button class="admin-delete-btn" onclick="deleteAdminModule('${role}', ${i})" title="Удалить модуль">✕</button>
-      </div>
-      <div class="admin-field">
-        <label>Заголовок</label>
-        <input class="admin-input" id="amod-${role}-${i}-title" value="${escAttr(mod.title)}">
-      </div>
+  <div class="admin-card-title">Модуль ${i + 1} — ${mod.title}</div>
+  <button class="admin-delete-btn" onclick="deleteAdminModule('${role}', ${i})" title="Удалить модуль">✕</button>
+</div>
+<div class="admin-field" style="flex-direction:row;align-items:center;gap:0.75rem">
+  <label style="white-space:nowrap">Порядковый номер</label>
+  <input class="admin-input" type="number" min="1" id="amod-${role}-${i}-order" value="${i + 1}" style="width:80px" onchange="reorderAdminItems(this, 'module', '${role}', ${i})">
+</div>
+<div class="admin-field">
+  <label>Название раздела (для группировки)</label>
+  <input class="admin-input" id="amod-${role}-${i}-section" value="${escAttr(mod.sectionName || '')}">
+</div>
+<div class="admin-field">
+  <label>Заголовок</label>
+  <input class="admin-input" id="amod-${role}-${i}-title" value="${escAttr(mod.title)}">
+</div>
       <div class="admin-field">
         <label>Описание</label>
         <textarea class="admin-textarea" id="amod-${role}-${i}-desc">${mod.desc}</textarea>
@@ -5951,6 +6016,7 @@ async function saveAdminModule(role, i) {
     MODULES_BY_ROLE[role][i].desc = desc;
     MODULES_BY_ROLE[role][i].videoId = videoId;
     MODULES_BY_ROLE[role][i].duration = duration;
+    MODULES_BY_ROLE[role][i].sectionName = document.getElementById(`amod-${role}-${i}-section`).value.trim();
     if (role === currentRole) renderModules();
     showAdminMsg(msgEl, "✅ Сохранено!", "ok");
   }
@@ -6047,6 +6113,14 @@ function renderAdminQuizCards() {
         <div class="admin-card-title">Вопрос ${i + 1} · ${q.module}</div>
         <button class="admin-delete-btn" onclick="deleteAdminQuiz('${role}', ${i})" title="Удалить вопрос">✕</button>
       </div>
+      <div class="admin-field" style="flex-direction:row;align-items:center;gap:0.75rem">
+        <label style="white-space:nowrap">Порядковый номер</label>
+        <input class="admin-input" type="number" min="1" id="aq-${role}-${i}-order" value="${i + 1}" style="width:80px" onchange="reorderAdminItems(this, 'quiz', '${role}', ${i})">
+      </div>
+      <div class="admin-field">
+  <label>Раздел / Модуль</label>
+  <input class="admin-input" id="aq-${role}-${i}-module" value="${escAttr(q.module || '')}">
+</div>
       <div class="admin-field">
         <label>Вопрос</label>
         <textarea class="admin-textarea" id="aq-${role}-${i}-q">${q.q}</textarea>
@@ -6073,6 +6147,10 @@ function renderAdminQuizCards() {
         <label>Объяснение ответа</label>
         <textarea class="admin-textarea" id="aq-${role}-${i}-fb">${q.feedback}</textarea>
       </div>
+      <div class="admin-field" style="flex-direction:row;align-items:center;gap:0.75rem">
+  <input type="checkbox" id="aq-${role}-${i}-practical" ${q.practical ? 'checked' : ''} style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+  <label for="aq-${role}-${i}-practical" style="font-family:Rajdhani,sans-serif;font-size:0.75rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);cursor:pointer">Практический вопрос 🧪</label>
+</div>
       <div class="admin-msg" id="aq-msg-${role}-${i}"></div>
       <div style="display:flex;flex-direction:row;align-items:center;gap:0.5rem;align-self:flex-end;margin-top:0.25rem;flex-wrap:wrap">
         <button class="admin-preview-btn" onclick="previewAdminQuiz('${role}', ${i})">👁 Сохранить у себя</button>
@@ -6142,7 +6220,9 @@ async function saveAdminQuiz(role, i) {
     module: q.module,
   };
   const question = document.getElementById(`aq-${role}-${i}-q`).value.trim();
+  const moduleName = document.getElementById(`aq-${role}-${i}-module`).value.trim();
   const feedback = document.getElementById(`aq-${role}-${i}-fb`).value.trim();
+  const practical = document.getElementById(`aq-${role}-${i}-practical`).checked;
   const options = [0, 1, 2, 3].map((oi) =>
     document.getElementById(`aq-${role}-${i}-opt-${oi}`).value.trim(),
   );
@@ -6165,11 +6245,12 @@ async function saveAdminQuiz(role, i) {
     {
       role,
       question_index: i,
-      module_tag: q.module,
+      module_tag: moduleName || q.module,
       question,
       options,
       correct_index: correct,
       feedback,
+      is_practical: practical,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "role,question_index" },
@@ -6192,9 +6273,11 @@ async function saveAdminQuiz(role, i) {
     };
     await recordChange("quiz", `${role}:${i}`, beforeData, afterData);
     QUESTIONS_BY_ROLE[role][i].q = question;
+    QUESTIONS_BY_ROLE[role][i].module = moduleName || q.module;
     QUESTIONS_BY_ROLE[role][i].options = options;
     QUESTIONS_BY_ROLE[role][i].correct = correct;
     QUESTIONS_BY_ROLE[role][i].feedback = feedback;
+    QUESTIONS_BY_ROLE[role][i].practical = practical;
     if (role === currentRole) renderQuiz();
     showAdminMsg(msgEl, "✅ Сохранено!", "ok");
   }
@@ -6281,6 +6364,10 @@ function renderAdminThreats() {
       <div class="admin-card-header">
         <div class="admin-card-title">${t.icon} Угроза ${i + 1}</div>
         <button class="admin-delete-btn" onclick="deleteAdminThreat(${i})" title="Удалить угрозу">✕</button>
+      </div>
+      <div class="admin-field" style="flex-direction:row;align-items:center;gap:0.75rem">
+        <label style="white-space:nowrap">Порядковый номер</label>
+        <input class="admin-input" type="number" min="1" id="athr-${i}-order" value="${i + 1}" style="width:80px" onchange="reorderAdminItems(this, 'threat', null, ${i})">
       </div>
       <div class="admin-field">
         <label>Иконка (эмодзи)</label>
@@ -6498,6 +6585,10 @@ function renderAdminNews() {
       <div class="admin-card-header">
         <div class="admin-card-title">Новость ${i + 1}</div>
         <button class="admin-delete-btn" onclick="deleteAdminNews(${i})" title="Удалить новость">✕</button>
+      </div>
+      <div class="admin-field" style="flex-direction:row;align-items:center;gap:0.75rem">
+        <label style="white-space:nowrap">Порядковый номер</label>
+        <input class="admin-input" type="number" min="1" id="anews-${i}-order" value="${i + 1}" style="width:80px" onchange="reorderAdminItems(this, 'news', null, ${i})">
       </div>
       <div class="admin-field">
         <label>Заголовок</label>
@@ -6756,6 +6847,10 @@ function renderAdminTips() {
       <div class="admin-card-header">
         <div class="admin-card-title">${tip.icon} Совет ${i + 1}</div>
         <button class="admin-delete-btn" onclick="deleteAdminTip(${i})" title="Удалить совет">✕</button>
+      </div>
+      <div class="admin-field" style="flex-direction:row;align-items:center;gap:0.75rem">
+        <label style="white-space:nowrap">Порядковый номер</label>
+        <input class="admin-input" type="number" min="1" id="atip-${i}-order" value="${i + 1}" style="width:80px" onchange="reorderAdminItems(this, 'tip', null, ${i})">
       </div>
       <div class="admin-field">
         <label>Иконка (эмодзи)</label>
@@ -7173,7 +7268,7 @@ async function loadContentFromDB() {
   try {
     // Модули
     // Модули
-    const { data: modsDB } = await sb.from("modules_content").select("*");
+    const { data: modsDB } = await sb.from("modules_content").select("*").order("sort_order");
     if (modsDB && modsDB.length > 0) {
       modsDB.forEach((row) => {
         if (!MODULES_BY_ROLE[row.role]) return;
@@ -7209,7 +7304,7 @@ async function loadContentFromDB() {
 
     // Вопросы теста
     // Вопросы теста
-    const { data: quizDB } = await sb.from("quiz_content").select("*");
+    const { data: quizDB } = await sb.from("quiz_content").select("*").order("sort_order");
     if (quizDB && quizDB.length > 0) {
       quizDB.forEach((row) => {
         if (!QUESTIONS_BY_ROLE[row.role]) return;
@@ -7242,7 +7337,7 @@ async function loadContentFromDB() {
     const { data: threatsDB } = await sb
       .from("threats_content")
       .select("*")
-      .order("id");
+      .order("sort_order");
     if (threatsDB && threatsDB.length > 0) {
       const levelTextMap = {
         "level-high": "● Высокий риск",
@@ -7274,7 +7369,7 @@ async function loadContentFromDB() {
     const { data: newsDB } = await sb
       .from("news_content")
       .select("*")
-      .order("id");
+      .order("sort_order");
     if (newsDB && newsDB.length > 0) {
       newsDB.forEach((row, i) => {
         if (!NEWS_ITEMS[i]) {
@@ -7310,7 +7405,7 @@ async function loadContentFromDB() {
     const { data: tipsDB } = await sb
       .from("tips_content")
       .select("*")
-      .order("id");
+      .order("sort_order");
     if (tipsDB && tipsDB.length > 0) {
       const levelTextMap = {
         "level-high": "● Высокий риск",
@@ -8364,6 +8459,56 @@ async function showDiff(historyId) {
     if (e.target === overlay) overlay.remove();
   });
   document.body.appendChild(overlay);
+}
+
+function reorderAdminItems(input, type, role, fromIdx) {
+  let arr;
+  if (type === 'module') arr = MODULES_BY_ROLE[role];
+  else if (type === 'quiz') arr = QUESTIONS_BY_ROLE[role];
+  else if (type === 'threat') arr = threatsData;
+  else if (type === 'news') arr = NEWS_ITEMS;
+  else if (type === 'tip') arr = tipsData;
+
+  const toIdx = Math.max(0, Math.min(parseInt(input.value) - 1, arr.length - 1));
+  if (toIdx === fromIdx) return;
+
+  const [moved] = arr.splice(fromIdx, 1);
+  arr.splice(toIdx, 0, moved);
+
+  const sb = getSupabase();
+
+  if (type === 'module') {
+    MODULES_BY_ROLE[role].forEach((m, i) => m.num = i + 1);
+    MODULES_BY_ROLE[role].forEach((m, i) => {
+      sb.from('modules_content').update({ sort_order: i }).eq('role', role).eq('num', m.num);
+    });
+    renderAdminModuleCards();
+    if (role === currentRole) renderModules();
+  } else if (type === 'quiz') {
+    QUESTIONS_BY_ROLE[role].forEach((q, i) => {
+      sb.from('quiz_content').update({ sort_order: i }).eq('role', role).eq('question_index', i);
+    });
+    renderAdminQuizCards();
+    if (role === currentRole) renderQuiz();
+  } else if (type === 'threat') {
+    threatsData.forEach((t, i) => {
+      if (t._dbId) sb.from('threats_content').update({ sort_order: i }).eq('id', t._dbId);
+    });
+    renderAdminThreats();
+    renderThreatsSection();
+  } else if (type === 'news') {
+    NEWS_ITEMS.forEach((n, i) => {
+      if (n._dbId) sb.from('news_content').update({ sort_order: i }).eq('id', n._dbId);
+    });
+    renderAdminNews();
+    renderNews();
+  } else if (type === 'tip') {
+    tipsData.forEach((t, i) => {
+      if (t._dbId) sb.from('tips_content').update({ sort_order: i }).eq('id', t._dbId);
+    });
+    renderAdminTips();
+    renderTipsSection();
+  }
 }
 
 function togglePasswordVisibility(inputId, btn) {
