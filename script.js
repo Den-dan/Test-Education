@@ -3981,9 +3981,8 @@ async function doMaoLogin() {
   btn.innerHTML = createAuthLoadingHTML("ВХОДИМ");
   btn.style.animation = "authGlow 1.5s ease-in-out infinite";
 
-  const { error } = await sb.auth.signInWithPassword({ email, password });
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
 
-  // Сбрасываем кнопку в любом случае — при ошибке и при успехе
   btn.disabled = false;
   btn.innerHTML = "Войти";
   btn.style.animation = "";
@@ -3994,6 +3993,14 @@ async function doMaoLogin() {
         ? "Неверный email или пароль."
         : error.message;
     errEl.classList.add("show");
+    return;
+  }
+
+  // Успешный вход — сразу обрабатываем без ожидания onAuthStateChange
+  if (data.session) {
+    currentUser = data.session.user;
+    await afterLogin();
+    hideMandatoryOverlay();
   }
 }
 
@@ -4048,16 +4055,24 @@ async function doMaoRegister() {
   errEl.classList.remove("show");
   okEl.classList.remove("show");
 
-  if (!name || !email || !password) {
+  // Строгая проверка формата email
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+if (!name || !email || !password) {
     errEl.textContent = "Заполните имя, email и пароль.";
     errEl.classList.add("show");
     return;
-  }
-  if (password.length < 6) {
+}
+if (!emailRegex.test(email)) {
+    errEl.textContent = "Введите корректный email-адрес (например: user@company.kz).";
+    errEl.classList.add("show");
+    return;
+}
+if (password.length < 6) {
     errEl.textContent = "Пароль должен быть минимум 6 символов.";
     errEl.classList.add("show");
     return;
-  }
+}
 
   const sb = getSupabase();
   const btn = document.getElementById("maoRegBtn");
@@ -4104,17 +4119,23 @@ async function doMaoRegister() {
     }
   }
 
-  btn.innerHTML = "✅ Аккаунт создан!";
-  okEl.textContent = "Аккаунт создан! Входим...";
-  okEl.classList.add("show");
-  setTimeout(() => {
-    btn.disabled = false;
-    btn.innerHTML = "Зарегистрироваться";
-    btn.style.color = "";
-    btn.style.borderColor = "";
-    btn.style.animation = "";
+  setTimeout(async () => {
+  btn.disabled = false;
+  btn.innerHTML = "Зарегистрироваться";
+  btn.style.color = "";
+  btn.style.borderColor = "";
+  btn.style.animation = "";
+
+  // Автоматически входим после регистрации
+  const { data: signInData, error: signInError } = await sb.auth.signInWithPassword({ email, password });
+  if (!signInError && signInData.session) {
+    currentUser = signInData.session.user;
+    await afterLogin();
+    hideMandatoryOverlay();
+  } else {
     maoSwitchTab("login");
-  }, 1500);
+  }
+}, 1000);
 }
 
 // ============================================================
@@ -4122,6 +4143,13 @@ async function doMaoRegister() {
 // ============================================================
 async function initAuth() {
   const sb = getSupabase();
+
+  // Проверяем URL на наличие токена восстановления пароля
+  const hash = window.location.hash;
+  if (hash && hash.includes('type=recovery')) {
+    showPasswordRecoveryModal();
+    return;
+  }
 
   // Показываем заглушку пока грузится сессия
   const navGuest = document.getElementById("navGuest");
@@ -4154,6 +4182,10 @@ async function initAuth() {
   }
 
   sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === "PASSWORD_RECOVERY") {
+      showPasswordRecoveryModal();
+      return;
+    }
     if (event === "SIGNED_IN" && session) {
       currentUser = session.user;
       await afterLogin();
@@ -5436,10 +5468,9 @@ function openProfileModal() {
   document.getElementById("pmName").value = userProfile.full_name || "";
   document.getElementById("pmRole").value = userProfile.role || "employee";
   document.getElementById("pmDept").value = userProfile.department || "";
-  document.getElementById("pmEmail").value = currentUser.email || "";
-  document.getElementById("pmOldPass").value = "";
-  document.getElementById("pmNewPass").value = "";
-  document.getElementById("pmNewPass2").value = "";
+  document.getElementById("pmEmail").value = currentUser.email || ""; 
+  const resetEmailEl = document.getElementById("pmResetEmail");
+  if (resetEmailEl) resetEmailEl.value = currentUser.email || "";
   pmHideMsg("pmInfoMsg");
   pmHideMsg("pmPassMsg");
   pmSwitchTab("info");
@@ -5457,15 +5488,7 @@ function openProfileModal() {
     }
   });
 
-  // Enter для полей пароля
-  ["pmOldPass", "pmNewPass", "pmNewPass2"].forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.onkeydown = (e) => {
-        if (e.key === "Enter") pmSavePass();
-      };
-    }
-  });
+  
 }
 
 function closeProfileModal() {
@@ -5482,19 +5505,13 @@ function closeProfileModal() {
   const savePassBtn = document.getElementById("pmSavePassBtn");
   if (savePassBtn) {
     savePassBtn.disabled = false;
-    savePassBtn.innerHTML = "Изменить пароль";
+    savePassBtn.innerHTML = "📧 Отправить ссылку для смены пароля";
     savePassBtn.style.animation = "";
   }
 
   // Очищаем обработчики Enter
-  [
-    "pmName",
-    "pmRole",
-    "pmDept",
-    "pmOldPass",
-    "pmNewPass",
-    "pmNewPass2",
-  ].forEach((id) => {
+  // Очищаем обработчики Enter
+  ["pmName", "pmRole", "pmDept"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.onkeydown = null;
   });
@@ -5588,63 +5605,43 @@ async function pmSaveInfo() {
 }
 
 async function pmSavePass() {
-  const oldPass = document.getElementById("pmOldPass").value;
-  const newPass = document.getElementById("pmNewPass").value;
-  const newPass2 = document.getElementById("pmNewPass2").value;
-  if (!oldPass || !newPass || !newPass2) {
-    pmShowMsg("pmPassMsg", "Заполните все поля", "err");
-    return;
-  }
-  if (newPass.length < 6) {
-    pmShowMsg("pmPassMsg", "Новый пароль минимум 6 символов", "err");
-    return;
-  }
-  if (newPass !== newPass2) {
-    pmShowMsg("pmPassMsg", "Новые пароли не совпадают", "err");
-    return;
-  }
-  const sb = getSupabase();
+  const msgEl = document.getElementById("pmPassMsg");
   const btn = document.getElementById("pmSavePassBtn");
+
+  pmHideMsg("pmPassMsg");
+
+  if (!currentUser || !currentUser.email) {
+    pmShowMsg("pmPassMsg", "Ошибка: пользователь не авторизован", "err");
+    return;
+  }
+
   btn.disabled = true;
-  btn.innerHTML = createAuthLoadingHTML("СОХРАНЯЕМ");
+  btn.innerHTML = createAuthLoadingHTML("ОТПРАВЛЯЕМ");
   btn.style.animation = "authGlow 1.5s ease-in-out infinite";
 
-  try {
-    const { error: signInError } = await sb.auth.signInWithPassword({
-      email: currentUser.email,
-      password: oldPass,
-    });
-    if (signInError) {
-      btn.disabled = false;
-      btn.innerHTML = "Изменить пароль";
-      btn.style.animation = "";
-      pmShowMsg("pmPassMsg", "Текущий пароль неверный", "err");
-      return;
-    }
-    const { error } = await sb.auth.updateUser({ password: newPass });
-    if (error) {
-      btn.disabled = false;
-      btn.innerHTML = "Изменить пароль";
-      btn.style.animation = "";
-      pmShowMsg("pmPassMsg", "Ошибка: " + error.message, "err");
-      return;
-    }
-    document.getElementById("pmOldPass").value = "";
-    document.getElementById("pmNewPass").value = "";
-    document.getElementById("pmNewPass2").value = "";
-    btn.innerHTML = "✅ Пароль изменён!";
-    btn.style.animation = "";
-    setTimeout(() => {
-      btn.disabled = false;
-      btn.innerHTML = "Изменить пароль";
-    }, 1500);
-    pmShowMsg("pmPassMsg", "✅ Пароль успешно изменён!", "ok");
-  } catch (e) {
-    btn.disabled = false;
-    btn.innerHTML = "Изменить пароль";
-    btn.style.animation = "";
-    pmShowMsg("pmPassMsg", "Ошибка смены пароля", "err");
+  const sb = getSupabase();
+
+  // Определяем URL для редиректа после клика по ссылке в письме
+  const redirectTo = window.location.origin + window.location.pathname;
+
+  const { error } = await sb.auth.resetPasswordForEmail(currentUser.email, {
+    redirectTo: redirectTo,
+  });
+
+  btn.disabled = false;
+  btn.innerHTML = "📧 Отправить ссылку для смены пароля";
+  btn.style.animation = "";
+
+  if (error) {
+    pmShowMsg("pmPassMsg", "❌ Ошибка отправки: " + error.message, "err");
+    return;
   }
+
+  pmShowMsg(
+    "pmPassMsg",
+    `✅ Письмо отправлено на ${currentUser.email}. Проверьте почту (и папку «Спам»).`,
+    "ok"
+  );
 }
 
 async function pmFillStats() {
@@ -7869,3 +7866,117 @@ function togglePasswordVisibility(inputId, btn) {
   scheduleMeteor();
   draw();
 })();
+
+function showPasswordRecoveryModal() {
+  // Убираем старый если есть
+  const old = document.getElementById("passwordRecoveryOverlay");
+  if (old) old.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "passwordRecoveryOverlay";
+  overlay.style.cssText = `
+    position:fixed;inset:0;z-index:9999;
+    background:rgba(2,6,12,0.97);backdrop-filter:blur(20px);
+    display:flex;align-items:center;justify-content:center;padding:1rem;
+  `;
+  overlay.innerHTML = `
+    <div style="
+      background:linear-gradient(135deg,rgba(13,26,43,0.99),rgba(17,34,54,0.99));
+      border:1px solid rgba(0,212,255,0.25);border-radius:8px;
+      width:100%;max-width:420px;overflow:hidden;
+      box-shadow:0 0 60px rgba(0,119,255,0.15);
+    ">
+      <div style="height:3px;background:linear-gradient(90deg,transparent,#0077ff,#00d4ff,#00e5a0,transparent);background-size:200% 100%;animation:shimmerBar 3s linear infinite"></div>
+      <div style="padding:2rem">
+        <div style="font-family:Rajdhani,sans-serif;font-size:1.4rem;font-weight:700;color:#fff;margin-bottom:0.4rem">🔐 Новый пароль</div>
+        <div style="font-size:0.85rem;color:var(--text-dim);margin-bottom:1.5rem;line-height:1.6">Придумайте новый пароль для вашего аккаунта.</div>
+
+        <div style="display:flex;flex-direction:column;gap:0.4rem;margin-bottom:1rem">
+          <label style="font-family:Rajdhani,sans-serif;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim)">Новый пароль</label>
+          <div style="position:relative">
+            <input id="recoveryNewPass" type="password" placeholder="Минимум 6 символов"
+              style="width:100%;background:rgba(5,11,20,0.8);border:1px solid var(--border);border-radius:3px;padding:0.75rem 2.5rem 0.75rem 1rem;font-family:'IBM Plex Sans',sans-serif;font-size:0.9rem;color:var(--text);outline:none">
+            <button type="button" onclick="togglePasswordVisibility('recoveryNewPass',this)"
+              style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-dim);padding:0;display:flex;align-items:center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:0.4rem;margin-bottom:1.25rem">
+          <label style="font-family:Rajdhani,sans-serif;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim)">Повторите пароль</label>
+          <div style="position:relative">
+            <input id="recoveryNewPass2" type="password" placeholder="••••••••"
+              style="width:100%;background:rgba(5,11,20,0.8);border:1px solid var(--border);border-radius:3px;padding:0.75rem 2.5rem 0.75rem 1rem;font-family:'IBM Plex Sans',sans-serif;font-size:0.9rem;color:var(--text);outline:none">
+            <button type="button" onclick="togglePasswordVisibility('recoveryNewPass2',this)"
+              style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-dim);padding:0;display:flex;align-items:center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="recoveryMsg" style="display:none;border-radius:3px;padding:0.65rem 1rem;font-size:0.85rem;margin-bottom:1rem"></div>
+
+        <button id="recoverySubmitBtn" onclick="submitPasswordRecovery()"
+          style="width:100%;font-family:Rajdhani,sans-serif;font-weight:700;font-size:0.9rem;letter-spacing:2px;text-transform:uppercase;padding:0.85rem;border-radius:3px;cursor:pointer;border:none;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#000;box-shadow:0 0 20px rgba(0,212,255,0.2);transition:all 0.2s">
+          Сохранить новый пароль
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  // Enter для полей
+  ["recoveryNewPass", "recoveryNewPass2"].forEach(id => {
+    document.getElementById(id).addEventListener("keydown", e => {
+      if (e.key === "Enter") submitPasswordRecovery();
+    });
+  });
+}
+
+async function submitPasswordRecovery() {
+  const pass = document.getElementById("recoveryNewPass").value;
+  const pass2 = document.getElementById("recoveryNewPass2").value;
+  const msgEl = document.getElementById("recoveryMsg");
+  const btn = document.getElementById("recoverySubmitBtn");
+
+  msgEl.style.display = "none";
+
+  if (!pass || pass.length < 6) {
+    msgEl.textContent = "Пароль должен быть минимум 6 символов.";
+    msgEl.style.cssText = "display:block;background:rgba(255,59,92,0.1);border:1px solid var(--danger);color:var(--danger);border-radius:3px;padding:0.65rem 1rem;font-size:0.85rem;margin-bottom:1rem";
+    return;
+  }
+  if (pass !== pass2) {
+    msgEl.textContent = "Пароли не совпадают.";
+    msgEl.style.cssText = "display:block;background:rgba(255,59,92,0.1);border:1px solid var(--danger);color:var(--danger);border-radius:3px;padding:0.65rem 1rem;font-size:0.85rem;margin-bottom:1rem";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = createAuthLoadingHTML("СОХРАНЯЕМ");
+  btn.style.animation = "authGlow 1.5s ease-in-out infinite";
+
+  const sb = getSupabase();
+  const { error } = await sb.auth.updateUser({ password: pass });
+
+  btn.disabled = false;
+  btn.innerHTML = "Сохранить новый пароль";
+  btn.style.animation = "";
+
+  if (error) {
+    msgEl.textContent = "❌ Ошибка: " + error.message;
+    msgEl.style.cssText = "display:block;background:rgba(255,59,92,0.1);border:1px solid var(--danger);color:var(--danger);border-radius:3px;padding:0.65rem 1rem;font-size:0.85rem;margin-bottom:1rem";
+    return;
+  }
+
+  msgEl.textContent = "✅ Пароль успешно изменён!";
+  msgEl.style.cssText = "display:block;background:rgba(0,229,160,0.1);border:1px solid var(--success);color:var(--success);border-radius:3px;padding:0.65rem 1rem;font-size:0.85rem;margin-bottom:1rem";
+
+  setTimeout(() => {
+    const overlay = document.getElementById("passwordRecoveryOverlay");
+    if (overlay) overlay.remove();
+    // Очищаем токен из URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }, 2000);
+}
