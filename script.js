@@ -5947,7 +5947,7 @@ function renderAdminModuleCards() {
       <div class="admin-msg" id="amod-msg-${role}-${i}"></div>
       <div style="display:flex;flex-direction:row;align-items:center;gap:0.5rem;align-self:flex-end;margin-top:0.25rem;flex-wrap:wrap">
         <button class="admin-preview-btn" onclick="previewAdminModule('${role}', ${i})">👁 Сохранить у себя</button>
-        <button class="admin-save-btn" style="margin-top:0" onclick="saveAdminModule('${role}', ${i})">💾 Сохранить для всех</button>
+        <button class="admin-save-btn" style="margin-top:0" onclick="saveAdminModule('${role}', ${i}, this)">💾 Сохранить для всех</button>
       </div>
     </div>
   `,
@@ -5962,7 +5962,7 @@ function renderAdminModuleCards() {
   restoreUndoButtons();
 }
 
-async function saveAdminModule(role, i) {
+async function saveAdminModule(role, i, btnEl) {
   const mod = MODULES_BY_ROLE[role][i];
   const beforeData = {
     title: mod.title,
@@ -5978,7 +5978,7 @@ async function saveAdminModule(role, i) {
     .getElementById(`amod-${role}-${i}-dur`)
     .value.trim();
   const msgEl = document.getElementById(`amod-msg-${role}-${i}`);
-  const btn = document.querySelector(
+  const btn = btnEl || document.querySelector(
     `#adminModuleCards .admin-card[data-idx="${i}"] .admin-save-btn`,
   );
 
@@ -6154,7 +6154,7 @@ function renderAdminQuizCards() {
       <div class="admin-msg" id="aq-msg-${role}-${i}"></div>
       <div style="display:flex;flex-direction:row;align-items:center;gap:0.5rem;align-self:flex-end;margin-top:0.25rem;flex-wrap:wrap">
         <button class="admin-preview-btn" onclick="previewAdminQuiz('${role}', ${i})">👁 Сохранить у себя</button>
-        <button class="admin-save-btn" style="margin-top:0" onclick="saveAdminQuiz('${role}', ${i})">💾 Сохранить для всех</button>
+        <button class="admin-save-btn" style="margin-top:0" onclick="saveAdminQuiz('${role}', ${i}, this)">💾 Сохранить для всех</button>
       </div>
     </div>
   `,
@@ -6210,7 +6210,7 @@ async function addAdminQuiz(role) {
   }, 100);
 }
 
-async function saveAdminQuiz(role, i) {
+async function saveAdminQuiz(role, i, btnEl) {
   const q = QUESTIONS_BY_ROLE[role][i];
   const beforeData = {
     q: q.q,
@@ -6231,8 +6231,8 @@ async function saveAdminQuiz(role, i) {
   );
   const correct = correctRadio ? parseInt(correctRadio.value) : q.correct;
   const msgEl = document.getElementById(`aq-msg-${role}-${i}`);
-  const btn = document.querySelector(
-    `#adminQuizCards .admin-card:nth-child(${i + 1}) .admin-save-btn`,
+  const btn = btnEl || document.querySelector(
+    `#adminQuizCards .admin-card[data-idx="${i}"] .admin-save-btn`,
   );
 
   if (btn) {
@@ -6241,24 +6241,27 @@ async function saveAdminQuiz(role, i) {
   }
 
   const sb = getSupabase();
-  const { error } = await sb.from("quiz_content").upsert(
-    {
-      role,
-      question_index: i,
-      module_tag: moduleName || q.module,
-      question,
-      options,
-      correct_index: correct,
-      feedback,
-      is_practical: practical,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "role,question_index" },
-  );
-
-  if (btn) {
-    btn.disabled = false;
-    btn.innerHTML = "💾 Сохранить";
+  let error;
+  try {
+    ({ error } = await sb.from("quiz_content").upsert(
+      {
+        role,
+        question_index: i,
+        module_tag: moduleName || q.module,
+        question,
+        options,
+        correct_index: correct,
+        feedback,
+        is_practical: practical,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "role,question_index" },
+    ));
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = "💾 Сохранить";
+    }
   }
 
   if (error) {
